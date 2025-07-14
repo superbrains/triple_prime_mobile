@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_button.dart';
+import 'package:triple_prime_mobile/core/app_router.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -148,7 +149,7 @@ class LandingPage extends StatelessWidget {
         CustomButton(
           text: 'Get Started',
           onPressed: () {
-            // TODO: Navigate to register page
+            Navigator.of(context).pushNamed(AppRouter.register);
           },
         ),
         const SizedBox(height: 16),
@@ -156,10 +157,10 @@ class LandingPage extends StatelessWidget {
           text: 'Sign In',
           variant: ButtonVariant.secondary,
           onPressed: () {
-            // TODO: Navigate to login page
+            Navigator.of(context).pushNamed(AppRouter.login);
           },
         ),
       ],
     );
   }
-} 
+}

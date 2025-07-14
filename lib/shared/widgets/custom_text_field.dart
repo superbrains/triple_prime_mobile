@@ -56,6 +56,7 @@ class CustomTextField extends StatelessWidget {
           textCapitalization: textCapitalization,
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey[400]),
             prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
             suffixIcon: suffixIcon,
           ),
@@ -70,4 +71,4 @@ class CustomTextField extends StatelessWidget {
       ],
     );
   }
-} 
+}

@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
-import 'package:triple_prime_mobile/features/auth/presentation/pages/landing_page.dart';
+import 'package:triple_prime_mobile/features/auth/notifiers/auth_notifier.dart';
+import 'package:triple_prime_mobile/core/app_router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const TriplePrimeApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthNotifier()),
+      ],
+      child: const TriplePrimeApp(),
+    ),
+  );
 }
 
 class TriplePrimeApp extends StatelessWidget {
@@ -17,7 +25,8 @@ class TriplePrimeApp extends StatelessWidget {
       title: 'Triple Prime',
       theme: AppTheme.lightTheme(),
       debugShowCheckedModeBanner: false,
-      home: const LandingPage(),
+      initialRoute: AppRouter.landing,
+      onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
 }
