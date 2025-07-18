@@ -10,6 +10,30 @@ class AppUtils {
     return formatter.format(amount);
   }
 
+  static String formatCurrencyWithCommas(num amount) {
+    final formatter = NumberFormat.currency(
+      symbol: AppConstants.currencySymbol,
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+
+  static String formatAmount(num amount) {
+    // Ensure all amounts are formatted with currency symbol
+    return formatCurrency(amount);
+  }
+
+  static String formatAmountWithoutSymbol(num amount) {
+    // Format amount without currency symbol but with commas
+    final formatter = NumberFormat('#,###');
+    return formatter.format(amount);
+  }
+
+  static String formatAmountWithSymbol(num amount) {
+    // Format amount with currency symbol and commas
+    return '${AppConstants.currencySymbol}${formatAmountWithoutSymbol(amount)}';
+  }
+
   static String formatDate(DateTime date) {
     return DateFormat(AppConstants.dateFormat).format(date);
   }
@@ -42,13 +66,14 @@ class AppUtils {
 
   static String getInitials(String name) {
     if (name.isEmpty) return '';
-    
+
     final nameParts = name.split(' ');
     if (nameParts.length == 1) {
       return nameParts[0][0].toUpperCase();
     }
-    
-    return '${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}'.toUpperCase();
+
+    return '${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}'
+        .toUpperCase();
   }
 
   static String calculateDailyAmount(num totalAmount, int durationInMonths) {
@@ -86,4 +111,4 @@ class AppUtils {
   static String getMonthYear(DateTime date) {
     return DateFormat('MM/yy').format(date);
   }
-} 
+}

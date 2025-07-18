@@ -3,12 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/core/services/auth_service.dart';
+import 'package:triple_prime_mobile/core/services/storage_service.dart';
 import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
 import 'package:triple_prime_mobile/shared/models/auth_models.dart';
 
 class AuthNotifier extends ChangeNotifier {
   // Services
   final AuthService _authService = AuthService();
+  final StorageService _storageService = StorageService();
 
   // Controllers
   final loginEmailController = TextEditingController();
@@ -103,7 +105,13 @@ class AuthNotifier extends ChangeNotifier {
 
   // Initialize authentication state
   Future<void> initializeAuth() async {
-    _isAuthenticated = await _authService.isAuthenticated();
+    _isAuthenticated = await _storageService.isAuthenticated();
+
+    // Load user data from storage if authenticated
+    if (_isAuthenticated) {
+      _currentUser = await _storageService.getUserData();
+    }
+
     notifyListeners();
   }
 
@@ -122,15 +130,21 @@ class AuthNotifier extends ChangeNotifier {
         password: loginPasswordController.text,
       );
 
-      if (response.success && response.data != null) {
-        _isAuthenticated = true;
-        _currentUser = response.data!.user;
+      if (response.success &&
+          response.data != null &&
+          response.data!.data != null) {
+        _currentUser = response.data?.data?.user;
 
-        // Clear form
         loginEmailController.clear();
         loginPasswordController.clear();
 
         CustomSnackBar.showSuccess(context, 'Login successful!');
+
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.mainScreen,
+          (route) => false,
+        );
+
         return true;
       } else {
         // Show more specific error message if available

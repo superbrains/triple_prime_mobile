@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:triple_prime_mobile/core/constants/app_constants.dart';
+import 'package:triple_prime_mobile/core/services/storage_service.dart';
 import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
 
 class NetworkService {
@@ -10,7 +10,7 @@ class NetworkService {
   factory NetworkService() => _instance;
 
   late Dio _dio;
-  final _storage = const FlutterSecureStorage();
+  final _storageService = StorageService();
   final _logger = Logger(
     printer: PrettyPrinter(
       methodCount: 0,
@@ -47,7 +47,7 @@ class NetworkService {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           // Add auth token if available
-          final token = await _storage.read(key: AppConstants.tokenKey);
+          final token = await _storageService.getAuthToken();
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -88,7 +88,7 @@ class NetworkService {
           // Handle specific error cases
           if (error.response?.statusCode == 401) {
             // Clear token and redirect to login
-            await _storage.delete(key: AppConstants.tokenKey);
+            await _storageService.clearAuthToken();
             _logger.w('🔐 Token cleared due to 401 error');
             // You can add navigation logic here if needed
           }
@@ -564,17 +564,42 @@ class NetworkService {
 
   // Helper method to save auth token
   Future<void> saveAuthToken(String token) async {
-    await _storage.write(key: AppConstants.tokenKey, value: token);
+    await _storageService.saveAuthToken(token);
   }
 
   // Helper method to clear auth token
   Future<void> clearAuthToken() async {
-    await _storage.delete(key: AppConstants.tokenKey);
+    await _storageService.clearAuthToken();
   }
 
   // Helper method to get auth token
   Future<String?> getAuthToken() async {
-    return await _storage.read(key: AppConstants.tokenKey);
+    return await _storageService.getAuthToken();
+  }
+
+  // Helper method to save user data
+  Future<void> saveUserData(String userDataJson) async {
+    // This method is deprecated, use StorageService.saveUserData(UserData) instead
+    _logger.w(
+        '⚠️ saveUserData(String) is deprecated. Use StorageService.saveUserData(UserData) instead');
+  }
+
+  // Helper method to get user data
+  Future<String?> getUserData() async {
+    // This method is deprecated, use StorageService.getUserData() instead
+    _logger.w(
+        '⚠️ getUserData() is deprecated. Use StorageService.getUserData() instead');
+    return null;
+  }
+
+  // Helper method to clear user data
+  Future<void> clearUserData() async {
+    await _storageService.clearUserData();
+  }
+
+  // Helper method to clear all auth data (token + user data)
+  Future<void> clearAllAuthData() async {
+    await _storageService.clearAllAuthData();
   }
 }
 

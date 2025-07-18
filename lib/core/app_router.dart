@@ -4,6 +4,9 @@ import 'package:triple_prime_mobile/features/auth/presentation/pages/login_page.
 import 'package:triple_prime_mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:triple_prime_mobile/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:triple_prime_mobile/features/auth/presentation/pages/reset_password_page.dart';
+import 'package:triple_prime_mobile/features/dashboard/presentation/pages/main_screen.dart';
+import 'package:triple_prime_mobile/features/food_packs/presentation/pages/food_pack_detail_page.dart';
+import 'package:triple_prime_mobile/shared/models/food_pack_models.dart';
 
 class AppRouter {
   static const String landing = '/';
@@ -11,6 +14,8 @@ class AppRouter {
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
+  static const String mainScreen = '/main';
+  static const String foodPackDetail = '/food-pack-detail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -24,6 +29,11 @@ class AppRouter {
         return _slideRoute(const ForgotPasswordPage(), settings);
       case resetPassword:
         return _slideRoute(const ResetPasswordPage(), settings);
+      case mainScreen:
+        return _fadeRoute(const MainScreen(), settings);
+      case foodPackDetail:
+        final foodPack = settings.arguments as FoodPack;
+        return _slideRoute(FoodPackDetailPage(foodPack: foodPack), settings);
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

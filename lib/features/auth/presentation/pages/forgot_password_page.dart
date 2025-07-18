@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
-import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_button.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_text_field.dart';
 import '../../notifiers/auth_notifier.dart';

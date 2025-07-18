@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:logger/logger.dart';
 import 'package:triple_prime_mobile/core/constants/app_constants.dart';
+import 'package:triple_prime_mobile/core/services/storage_service.dart';
 import 'package:triple_prime_mobile/core/utils/network_service.dart';
 import 'package:triple_prime_mobile/shared/models/auth_models.dart';
 
@@ -8,6 +11,7 @@ class AuthService {
   factory AuthService() => _instance;
 
   final NetworkService _networkService = NetworkService();
+  final StorageService _storageService = StorageService();
   final _logger = Logger();
 
   AuthService._internal();
@@ -54,7 +58,7 @@ class AuthService {
       if (response.success && response.data != null) {
         // Save the auth token if it exists
         if (response.data!.token != null) {
-          await _networkService.saveAuthToken(response.data!.token!);
+          await _storageService.saveAuthToken(response.data?.token ?? '');
         }
         _logger.i('✅ Registration successful for: $email');
       } else {
@@ -75,7 +79,7 @@ class AuthService {
   }
 
   /// Login user
-  Future<ApiResponse<AuthResponse>> login({
+  Future<ApiResponse<LoginResponse>> login({
     required String email,
     required String password,
   }) async {
@@ -89,25 +93,49 @@ class AuthService {
 
       _logger.d('📤 Login request data: ${request.toJson()}');
 
-      final response = await _networkService.post<AuthResponse>(
+      final response = await _networkService.post<LoginResponse>(
         AppConstants.authLogin,
         data: request.toJson(),
         fromJson: (json) {
-          _logger.d('🔍 Parsing response JSON: $json');
+          _logger.i('🔍 Parsing response JSON: $json');
           try {
-            return AuthResponse.fromJson(json);
+            return LoginResponse.fromJson(json);
           } catch (e) {
-            _logger.e('💥 Failed to parse AuthResponse: $e');
+            _logger.e('💥 Failed to parse LoginResponse: $e');
             rethrow;
           }
         },
       );
 
-      if (response.success && response.data != null) {
-        // Save the auth token if it exists
-        if (response.data!.token != null) {
-          await _networkService.saveAuthToken(response.data!.token!);
+      if (response.success &&
+          response.data != null &&
+          response.data!.data != null) {
+        // Extract token from claims
+        final claims = response.data!.data!.claims;
+        if (claims != null) {
+          final tokenClaim = claims.firstWhere(
+            (claim) => claim.type == 'token',
+            orElse: () => const Claim(
+              issuer: '',
+              originalIssuer: '',
+              properties: {},
+              type: '',
+              value: '',
+              valueType: '',
+            ),
+          );
+
+          if (tokenClaim.value.isNotEmpty) {
+            await _storageService.saveAuthToken(tokenClaim.value);
+          }
         }
+
+        // Save user data to secure storage
+        if (response.data?.data?.user != null) {
+          await _storageService.saveUserData(response.data!.data!.user!);
+          _logger.i('💾 User data saved to secure storage');
+        }
+
         _logger.i('✅ Login successful for: $email');
       } else {
         _logger.e('❌ Login failed for: $email - ${response.message}');
@@ -131,8 +159,8 @@ class AuthService {
     try {
       _logger.i('🔄 Starting logout process');
 
-      // Clear the auth token
-      await _networkService.clearAuthToken();
+      // Clear all auth data (token + user data)
+      await _storageService.clearAllAuthData();
 
       _logger.i('✅ Logout successful');
     } catch (e) {
@@ -143,18 +171,27 @@ class AuthService {
   /// Check if user is authenticated
   Future<bool> isAuthenticated() async {
     try {
-      final token = await _networkService.getAuthToken();
-      return token != null && token.isNotEmpty;
+      return await _storageService.isAuthenticated();
     } catch (e) {
       _logger.e('💥 Authentication check error: $e');
       return false;
     }
   }
 
+  /// Get current user data from storage
+  Future<UserData?> getCurrentUser() async {
+    try {
+      return await _storageService.getUserData();
+    } catch (e) {
+      _logger.e('💥 Get current user error: $e');
+      return null;
+    }
+  }
+
   /// Get current auth token
   Future<String?> getAuthToken() async {
     try {
-      return await _networkService.getAuthToken();
+      return await _storageService.getAuthToken();
     } catch (e) {
       _logger.e('💥 Get auth token error: $e');
       return null;
@@ -173,7 +210,7 @@ class AuthService {
 
       if (response.success && response.data?.token != null) {
         // Save the new auth token
-        await _networkService.saveAuthToken(response.data!.token!);
+        await _storageService.saveAuthToken(response.data?.token ?? '');
         _logger.i('✅ Token refresh successful');
       } else {
         _logger.e('❌ Token refresh failed - ${response.message}');
@@ -248,6 +285,60 @@ class AuthService {
       _logger.e('💥 Password reset error: $e');
       return ApiResponse.error(
         message: 'Password reset failed. Please try again.',
+        statusCode: 500,
+      );
+    }
+  }
+
+  /// Update user profile
+  Future<ApiResponse<AuthResponse>> updateProfile({
+    required String userId,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String address,
+  }) async {
+    try {
+      _logger.i('🔄 Starting profile update process for user: $userId');
+
+      final request = ProfileUpdateRequest(
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: phoneNumber,
+        address: address,
+      );
+
+      _logger.d('📤 Profile update request data: ${request.toJson()}');
+
+      final response = await _networkService.put<AuthResponse>(
+        '${AppConstants.userProfileUpdate}/$userId',
+        data: request.toJson(),
+        fromJson: (json) {
+          _logger.d('🔍 Parsing profile update response JSON: $json');
+          try {
+            return AuthResponse.fromJson(json);
+          } catch (e) {
+            _logger.e('💥 Failed to parse AuthResponse: $e');
+            rethrow;
+          }
+        },
+      );
+
+      if (response.success && response.data != null) {
+        _logger.i('✅ Profile update successful for user: $userId');
+      } else {
+        _logger.e(
+            '❌ Profile update failed for user: $userId - ${response.message}');
+        if (response.errors != null && response.errors!.isNotEmpty) {
+          _logger.e('🚫 Specific errors: ${response.errors}');
+        }
+      }
+
+      return response;
+    } catch (e) {
+      _logger.e('💥 Profile update error: $e');
+      return ApiResponse.error(
+        message: 'Profile update failed. Please try again.',
         statusCode: 500,
       );
     }

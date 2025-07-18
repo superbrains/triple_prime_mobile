@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:triple_prime_mobile/features/browse/presentation/pages/browse_page.dart';
+import 'package:provider/provider.dart';
 import 'package:triple_prime_mobile/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:triple_prime_mobile/features/food_packs/presentation/pages/food_packs_page.dart';
+import 'package:triple_prime_mobile/features/food_packs/notifiers/food_pack_notifier.dart';
 import 'package:triple_prime_mobile/features/profile/presentation/pages/profile_page.dart';
-import 'package:triple_prime_mobile/features/savings/presentation/pages/savings_page.dart';
+import 'package:triple_prime_mobile/features/savings/notifiers/savings_plan_notifier.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,10 +20,20 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const DashboardPage(),
-    const BrowsePage(),
-    const SavingsPage(),
+    const FoodPacksPage(),
     const ProfilePage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch food packs when the main screen is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FoodPackNotifier>().fetchFoodPacks();
+
+      context.read<SavingsPlanNotifier>().fetchSavingsPlans();
+    });
+  }
 
   @override
   void dispose() {
@@ -62,14 +74,9 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Dashboard',
           ),
           NavigationDestination(
-            icon: Icon(Icons.search_outlined),
-            selectedIcon: Icon(Icons.search),
-            label: 'Browse',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.savings_outlined),
-            selectedIcon: Icon(Icons.savings),
-            label: 'Savings',
+            icon: Icon(Icons.restaurant_outlined),
+            selectedIcon: Icon(Icons.restaurant),
+            label: 'Food Packs',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -80,4 +87,4 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
-} 
+}
