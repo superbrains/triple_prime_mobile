@@ -45,7 +45,7 @@ class TriplePrimeApp extends StatelessWidget {
     PushNotificationService.setContext(context);
 
     return MaterialApp(
-      title: 'Triple Prime',
+      title: 'Tripple Prime',
       theme: AppTheme.lightTheme(),
       debugShowCheckedModeBanner: false,
       home: Consumer<AuthNotifier>(

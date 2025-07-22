@@ -1,11 +1,11 @@
 {
-    "name": "triple_prime_mobile",
-    "short_name": "triple_prime_mobile",
+    "name": "Tripple Prime",
+    "short_name": "Tripple Prime",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Tripple Prime Food Saving Scheme Mobile App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

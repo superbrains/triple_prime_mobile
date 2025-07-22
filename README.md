@@ -1,6 +1,6 @@
-# Triple Prime Mobile App
+# Tripple Prime Mobile App
 
-A comprehensive mobile-first food savings application built with Flutter. Triple Prime helps users save money for their food needs through flexible savings plans and a user-friendly interface.
+A comprehensive mobile-first food savings application built with Flutter. Tripple Prime helps users save money for their food needs through flexible savings plans and a user-friendly interface.
 
 ## Features
 

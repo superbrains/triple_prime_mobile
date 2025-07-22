@@ -44,7 +44,7 @@ class PushNotificationService {
 
   static Future<void> _initializeLocalNotifications() async {
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
@@ -92,10 +92,11 @@ class PushNotificationService {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'triple_prime_channel',
-      'Triple Prime Notifications',
-      channelDescription: 'Notifications for Triple Prime app',
+      'Tripple Prime Notifications',
+      channelDescription: 'Notifications for Tripple Prime app',
       importance: Importance.high,
       priority: Priority.high,
+      icon: '@mipmap/launcher_icon',
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(

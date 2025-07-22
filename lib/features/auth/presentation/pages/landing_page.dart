@@ -62,7 +62,7 @@ class LandingPage extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Triple Prime',
+          'Tripple Prime',
           style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,

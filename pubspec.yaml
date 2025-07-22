@@ -1,5 +1,5 @@
 name: triple_prime_mobile
-description: Triple Prime Food Saving Scheme Mobile App
+description: Tripple Prime Food Saving Scheme Mobile App
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -89,6 +89,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/logo/
     - .env
     # - assets/icons/
     # - assets/fonts/
@@ -121,11 +122,12 @@ flutter:
 
 flutter_native_splash:
   color: "#FB8500"
-  image: assets/images/logo.png
+  image: assets/logo/TRIPPLE_PRIME.png
   android: true
   ios: true
 
-flutter_icons:
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo.png"
+  remove_alpha_ios: true
+  image_path: "assets/logo/TRIPPLE_PRIME.png"

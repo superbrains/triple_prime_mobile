@@ -8,7 +8,7 @@ class NotificationUtils {
       RemoteMessage(
         notification: RemoteNotification(
           title: 'Test Notification',
-          body: 'This is a test notification from Triple Prime',
+          body: 'This is a test notification from Tripple Prime',
         ),
         data: NotificationManager.createNotificationPayload(
           type: 'test',
