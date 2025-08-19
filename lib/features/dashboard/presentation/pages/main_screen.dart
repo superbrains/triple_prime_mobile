@@ -6,6 +6,7 @@ import 'package:triple_prime_mobile/features/food_packs/presentation/pages/food_
 import 'package:triple_prime_mobile/features/food_packs/notifiers/food_pack_notifier.dart';
 import 'package:triple_prime_mobile/features/profile/presentation/pages/profile_page.dart';
 import 'package:triple_prime_mobile/features/savings/notifiers/savings_plan_notifier.dart';
+import 'package:triple_prime_mobile/core/services/push_notification_service.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -27,11 +28,12 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch food packs when the main screen is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FoodPackNotifier>().fetchFoodPacks();
 
       context.read<SavingsPlanNotifier>().fetchSavingsPlans();
+
+      PushNotificationService.updateDeviceTokenOnServer();
     });
   }
 

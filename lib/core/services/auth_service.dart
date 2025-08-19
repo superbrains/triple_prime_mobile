@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:logger/logger.dart';
 import 'package:triple_prime_mobile/core/constants/app_constants.dart';
 import 'package:triple_prime_mobile/core/services/storage_service.dart';
@@ -22,8 +20,8 @@ class AuthService {
     required String password,
     required String firstName,
     required String lastName,
-    required String phoneNumber,
-    required String address,
+    String? phoneNumber,
+    String? address,
     String? referralCode,
   }) async {
     try {
@@ -295,8 +293,9 @@ class AuthService {
     required String userId,
     required String firstName,
     required String lastName,
-    required String phoneNumber,
-    required String address,
+    required String email,
+    String? phoneNumber,
+    String? address,
   }) async {
     try {
       _logger.i('🔄 Starting profile update process for user: $userId');
@@ -304,6 +303,7 @@ class AuthService {
       final request = ProfileUpdateRequest(
         firstName: firstName,
         lastName: lastName,
+        email: email,
         phoneNumber: phoneNumber,
         address: address,
       );
@@ -339,6 +339,57 @@ class AuthService {
       _logger.e('💥 Profile update error: $e');
       return ApiResponse.error(
         message: 'Profile update failed. Please try again.',
+        statusCode: 500,
+      );
+    }
+  }
+
+  Future<ApiResponse<AuthResponse>> changePassword({
+    required String userId,
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      _logger.i('🔄 Starting password change process for user: $userId');
+
+      final request = {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      };
+
+      _logger.d('📤 Password change request data: $request');
+
+      final response = await _networkService.put<AuthResponse>(
+        '${AppConstants.userChangePassword}/$userId',
+        data: request,
+        fromJson: (json) {
+          _logger.d('🔍 Parsing password change response JSON: $json');
+          try {
+            return AuthResponse.fromJson(json);
+          } catch (e) {
+            _logger.e('💥 Failed to parse AuthResponse: $e');
+            rethrow;
+          }
+        },
+      );
+
+      if (response.success) {
+        _logger.i('✅ Password change successful for user: $userId');
+      } else {
+        _logger.e(
+            '❌ Password change failed for user: $userId - ${response.message}');
+        if (response.errors != null && response.errors!.isNotEmpty) {
+          _logger.e('🚫 Specific errors: ${response.errors}');
+        }
+      }
+
+      return response;
+    } catch (e) {
+      _logger.e('💥 Password change error: $e');
+      return ApiResponse.error(
+        message: 'Password change failed. Please try again.',
         statusCode: 500,
       );
     }

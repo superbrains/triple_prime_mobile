@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_button.dart';
@@ -62,7 +64,7 @@ class LandingPage extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Tripple Prime',
+          'Triple Prime',
           style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,

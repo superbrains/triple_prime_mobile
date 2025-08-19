@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
@@ -177,7 +179,7 @@ class CustomSnackBar {
       positionOffset: 0,
       showProgressIndicator: true,
       progressIndicatorBackgroundColor: Colors.white.withOpacity(0.3),
-      progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      progressIndicatorValueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
       boxShadows: [
         BoxShadow(
           color: AppTheme.primaryColor.withOpacity(0.3),

@@ -3,8 +3,8 @@ class RegisterRequest {
   final String password;
   final String firstName;
   final String lastName;
-  final String phoneNumber;
-  final String address;
+  final String? phoneNumber;
+  final String? address;
   final String? referralCode;
 
   const RegisterRequest({
@@ -12,8 +12,8 @@ class RegisterRequest {
     required this.password,
     required this.firstName,
     required this.lastName,
-    required this.phoneNumber,
-    required this.address,
+    this.phoneNumber,
+    this.address,
     this.referralCode,
   });
 
@@ -23,8 +23,8 @@ class RegisterRequest {
       password: json['password'] as String,
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
-      phoneNumber: json['phoneNumber'] as String,
-      address: json['address'] as String,
+      phoneNumber: json['phoneNumber'] as String?,
+      address: json['address'] as String?,
       referralCode: json['referralCode'] as String?,
     );
   }
@@ -35,8 +35,9 @@ class RegisterRequest {
       'password': password,
       'firstName': firstName,
       'lastName': lastName,
-      'phoneNumber': phoneNumber,
-      'address': address,
+      if (phoneNumber != null && phoneNumber!.isNotEmpty)
+        'phoneNumber': phoneNumber,
+      if (address != null && address!.isNotEmpty) 'address': address,
       if (referralCode != null) 'referralCode': referralCode,
     };
   }
@@ -332,22 +333,25 @@ class Claim {
 class ProfileUpdateRequest {
   final String firstName;
   final String lastName;
-  final String phoneNumber;
-  final String address;
+  final String email;
+  final String? phoneNumber;
+  final String? address;
 
   const ProfileUpdateRequest({
     required this.firstName,
     required this.lastName,
-    required this.phoneNumber,
-    required this.address,
+    required this.email,
+    this.phoneNumber,
+    this.address,
   });
 
   factory ProfileUpdateRequest.fromJson(Map<String, dynamic> json) {
     return ProfileUpdateRequest(
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
-      phoneNumber: json['phoneNumber'] as String,
-      address: json['address'] as String,
+      email: json['email'] as String,
+      phoneNumber: json['phoneNumber'] as String?,
+      address: json['address'] as String?,
     );
   }
 
@@ -355,8 +359,10 @@ class ProfileUpdateRequest {
     return {
       'firstName': firstName,
       'lastName': lastName,
-      'phoneNumber': phoneNumber,
-      'address': address,
+      'email': email,
+      if (phoneNumber != null && phoneNumber!.isNotEmpty)
+        'phoneNumber': phoneNumber,
+      if (address != null && address!.isNotEmpty) 'address': address,
     };
   }
 
@@ -366,6 +372,7 @@ class ProfileUpdateRequest {
     return other is ProfileUpdateRequest &&
         other.firstName == firstName &&
         other.lastName == lastName &&
+        other.email == email &&
         other.phoneNumber == phoneNumber &&
         other.address == address;
   }
@@ -375,6 +382,7 @@ class ProfileUpdateRequest {
     return Object.hash(
       firstName,
       lastName,
+      email,
       phoneNumber,
       address,
     );
@@ -382,7 +390,7 @@ class ProfileUpdateRequest {
 
   @override
   String toString() {
-    return 'ProfileUpdateRequest(firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, address: $address)';
+    return 'ProfileUpdateRequest(firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber, address: $address)';
   }
 }
 
@@ -469,7 +477,7 @@ class UserData {
   final String passwordHash;
   final String securityStamp;
   final String concurrencyStamp;
-  final String phoneNumber;
+  final String? phoneNumber;
   final bool phoneNumberConfirmed;
   final bool twoFactorEnabled;
   final DateTime? lockoutEnd;
@@ -477,7 +485,7 @@ class UserData {
   final int accessFailedCount;
   final String firstName;
   final String lastName;
-  final String address;
+  final String? address;
   final bool isActive;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -504,7 +512,7 @@ class UserData {
     required this.passwordHash,
     required this.securityStamp,
     required this.concurrencyStamp,
-    required this.phoneNumber,
+    this.phoneNumber,
     required this.phoneNumberConfirmed,
     required this.twoFactorEnabled,
     this.lockoutEnd,
@@ -512,7 +520,7 @@ class UserData {
     required this.accessFailedCount,
     required this.firstName,
     required this.lastName,
-    required this.address,
+    this.address,
     required this.isActive,
     required this.createdAt,
     this.updatedAt,
@@ -541,7 +549,7 @@ class UserData {
       passwordHash: json['passwordHash']?.toString() ?? '',
       securityStamp: json['securityStamp']?.toString() ?? '',
       concurrencyStamp: json['concurrencyStamp']?.toString() ?? '',
-      phoneNumber: json['phoneNumber']?.toString() ?? '',
+      phoneNumber: json['phoneNumber']?.toString(),
       phoneNumberConfirmed: json['phoneNumberConfirmed'] as bool? ?? false,
       twoFactorEnabled: json['twoFactorEnabled'] as bool? ?? false,
       lockoutEnd: json['lockoutEnd'] != null
@@ -551,7 +559,7 @@ class UserData {
       accessFailedCount: json['accessFailedCount'] as int? ?? 0,
       firstName: json['firstName']?.toString() ?? '',
       lastName: json['lastName']?.toString() ?? '',
-      address: json['address']?.toString() ?? '',
+      address: json['address']?.toString(),
       isActive: json['isActive'] as bool? ?? false,
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.now(),

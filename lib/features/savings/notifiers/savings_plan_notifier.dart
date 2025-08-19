@@ -11,7 +11,7 @@ class SavingsPlanNotifier extends ChangeNotifier {
   String _error = '';
   String _selectedStatus = 'All Status';
   String _searchQuery = '';
-  Map<int, bool> _reminderLoadingStates =
+  final Map<int, bool> _reminderLoadingStates =
       {}; // Track loading state for each plan
 
   // Getters

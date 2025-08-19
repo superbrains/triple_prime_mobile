@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:pay_with_paystack/pay_with_paystack.dart';
 import 'package:triple_prime_mobile/core/services/food_pack_service.dart';
@@ -288,7 +290,6 @@ class FoodPackNotifier extends ChangeNotifier {
     required FoodPack foodPack,
     String? secretKey,
   }) async {
-    print('secretKey: $secretKey');
     try {
       // Get user data from storage
       final userData = await _storageService.getUserData();

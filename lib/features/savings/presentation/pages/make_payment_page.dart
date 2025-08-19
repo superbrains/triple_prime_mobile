@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
 import 'package:triple_prime_mobile/core/utils/app_utils.dart';
@@ -441,7 +443,7 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
+              child: const Text(
                 'Cancel',
                 style: TextStyle(
                   color: Colors.black87,

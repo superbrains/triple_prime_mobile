@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -113,7 +115,8 @@ class _BrowsePageState extends State<BrowsePage> {
                 });
               },
               backgroundColor: Colors.grey[100],
-              selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              selectedColor:
+                  Theme.of(context).colorScheme.primary.withOpacity(0.2),
               labelStyle: TextStyle(
                 color: isSelected
                     ? Theme.of(context).colorScheme.primary
@@ -171,12 +174,11 @@ class _BrowsePageState extends State<BrowsePage> {
     );
   }
 
-  Widget _buildFoodPackCard(BuildContext context, Map<String, String> pack, int index) {
+  Widget _buildFoodPackCard(
+      BuildContext context, Map<String, String> pack, int index) {
     return Card(
       child: InkWell(
-        onTap: () {
-          // TODO: Navigate to food pack detail page
-        },
+        onTap: () {},
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -232,6 +234,9 @@ class _BrowsePageState extends State<BrowsePage> {
           ),
         ),
       ),
-    ).animate(delay: Duration(milliseconds: 100 * index)).fadeIn().slideY(begin: 0.2, end: 0);
+    )
+        .animate(delay: Duration(milliseconds: 100 * index))
+        .fadeIn()
+        .slideY(begin: 0.2, end: 0);
   }
-} 
+}

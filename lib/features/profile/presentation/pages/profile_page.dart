@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
+import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_text_field.dart';
 import '../../notifiers/profile_notifier.dart';
 
@@ -22,7 +25,7 @@ class ProfilePage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Section
+                        const SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -210,10 +213,10 @@ class ProfilePage extends StatelessWidget {
                           'Account Settings',
                           [
                             _buildSettingItem(
-                                context, 'Change Password', Icons.lock_outline),
-                            _buildSettingItem(context, 'Notification Settings',
-                                Icons.notifications_outlined),
-                            _buildSettingItem(context, 'Privacy Settings',
+                                context, 'Change Password', Icons.lock_outline,
+                                onTap: () => Navigator.of(context)
+                                    .pushNamed(AppRouter.changePassword)),
+                            _buildSettingItem(context, 'Privacy Policy',
                                 Icons.privacy_tip_outlined),
                           ],
                         ),
@@ -224,11 +227,14 @@ class ProfilePage extends StatelessWidget {
                           'Support',
                           [
                             _buildSettingItem(
-                                context, 'Help Center', Icons.help_outline),
+                                context, 'Help Center', Icons.help_outline,
+                                onTap: () => _launchWhatsApp(context)),
                             _buildSettingItem(context, 'Contact Support',
-                                Icons.support_agent_outlined),
+                                Icons.support_agent_outlined,
+                                onTap: () => _launchContactSupport(context)),
                             _buildSettingItem(
-                                context, 'About App', Icons.info_outline),
+                                context, 'About App', Icons.info_outline,
+                                onTap: () => _launchAboutPage(context)),
                           ],
                         ),
                       ],
@@ -279,7 +285,6 @@ class ProfilePage extends StatelessWidget {
             label: 'Email Address',
             controller: profileNotifier.emailController,
             keyboardType: TextInputType.emailAddress,
-            enabled: false,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
@@ -293,25 +298,21 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           CustomTextField(
-            label: 'Phone Number',
+            label: 'Phone Number (Optional)',
             controller: profileNotifier.phoneController,
             keyboardType: TextInputType.phone,
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your phone number';
-              }
+              // Phone number is optional, so no validation required
               return null;
             },
           ),
           const SizedBox(height: 16),
           CustomTextField(
-            label: 'Address',
+            label: 'Address (Optional)',
             controller: profileNotifier.addressController,
             maxLines: 3,
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your address';
-              }
+              // Address is optional, so no validation required
               return null;
             },
           ),
@@ -458,8 +459,9 @@ class ProfilePage extends StatelessWidget {
   Widget _buildSettingItem(
     BuildContext context,
     String title,
-    IconData icon,
-  ) {
+    IconData icon, {
+    VoidCallback? onTap,
+  }) {
     return ListTile(
       leading: Icon(
         icon,
@@ -477,15 +479,71 @@ class ProfilePage extends StatelessWidget {
         color: Colors.grey.shade400,
         size: 20,
       ),
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$title functionality coming soon'),
-            backgroundColor: AppTheme.primaryColor,
-          ),
-        );
-      },
+      onTap: onTap ??
+          () {
+            CustomSnackBar.showInfo(
+                context, '$title functionality coming soon');
+          },
     );
+  }
+
+  Future<void> _launchContactSupport(BuildContext context) async {
+    const url = 'https://tripleprime.com.ng/contact';
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          CustomSnackBar.showError(context, 'Could not open contact page');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        CustomSnackBar.showError(context, 'Error opening contact page');
+      }
+    }
+  }
+
+  Future<void> _launchAboutPage(BuildContext context) async {
+    const url = 'https://tripleprime.com.ng/about';
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          CustomSnackBar.showError(context, 'Could not open about page');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        CustomSnackBar.showError(context, 'Error opening about page');
+      }
+    }
+  }
+
+  Future<void> _launchWhatsApp(BuildContext context) async {
+    const phoneNumber = '+2348087134262';
+    const message = 'Hello, I need support with Triple Prime app.';
+
+    final whatsappUrl =
+        'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+
+    try {
+      final uri = Uri.parse(whatsappUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          CustomSnackBar.showError(context, 'Could not open WhatsApp');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        CustomSnackBar.showError(context, 'Error opening WhatsApp');
+      }
+    }
   }
 
   void _showLogoutDialog(

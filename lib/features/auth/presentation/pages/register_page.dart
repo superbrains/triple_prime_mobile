@@ -101,28 +101,24 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 24),
                   CustomTextField(
-                    label: 'Phone Number',
+                    label: 'Phone Number (Optional)',
                     hint: '+234 800 000 0000',
                     controller: authNotifier.registerPhoneController,
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone_outlined,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Enter phone number';
-                      }
+                      // Phone number is optional, so no validation required
                       return null;
                     },
                   ),
                   const SizedBox(height: 24),
                   CustomTextField(
-                    label: 'Address',
+                    label: 'Address (Optional)',
                     hint: 'Enter your full address',
                     controller: authNotifier.registerAddressController,
                     prefixIcon: Icons.location_on_outlined,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Enter address';
-                      }
+                      // Address is optional, so no validation required
                       return null;
                     },
                   ),

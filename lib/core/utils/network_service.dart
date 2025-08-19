@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -361,8 +363,7 @@ class NetworkService {
         );
 
       case DioExceptionType.unknown:
-      default:
-        return ApiResponse.error(
+      return ApiResponse.error(
           message: 'Network error occurred. Please try again.',
           statusCode: 0,
         );
@@ -453,7 +454,7 @@ class NetworkService {
     }
 
     _logger.d('✅ Final extracted message: $message');
-    return message ?? 'An error occurred';
+    return message;
   }
 
   String? _extractStringValue(dynamic value) {

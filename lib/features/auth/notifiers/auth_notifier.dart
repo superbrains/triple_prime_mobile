@@ -194,8 +194,12 @@ class AuthNotifier extends ChangeNotifier {
         password: registerPasswordController.text,
         firstName: registerFirstNameController.text.trim(),
         lastName: registerLastNameController.text.trim(),
-        phoneNumber: registerPhoneController.text.trim(),
-        address: registerAddressController.text.trim(),
+        phoneNumber: registerPhoneController.text.trim().isEmpty
+            ? null
+            : registerPhoneController.text.trim(),
+        address: registerAddressController.text.trim().isEmpty
+            ? null
+            : registerAddressController.text.trim(),
       );
 
       if (response.success && response.data != null) {

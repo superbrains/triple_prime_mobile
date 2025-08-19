@@ -1,5 +1,7 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/core/services/auth_service.dart';
 import 'package:triple_prime_mobile/core/services/storage_service.dart';
@@ -25,7 +27,14 @@ class ProfileNotifier extends ChangeNotifier {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
 
+  final TextEditingController currentPasswordController =
+      TextEditingController();
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
   final GlobalKey<FormState> editProfileFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> changePasswordFormKey = GlobalKey<FormState>();
 
   ProfileNotifier() {
     _loadUserData();
@@ -53,8 +62,8 @@ class ProfileNotifier extends ChangeNotifier {
       firstNameController.text = _currentUser!.firstName;
       lastNameController.text = _currentUser!.lastName;
       emailController.text = _currentUser!.email;
-      phoneController.text = _currentUser!.phoneNumber;
-      addressController.text = _currentUser!.address;
+      phoneController.text = _currentUser!.phoneNumber ?? '';
+      addressController.text = _currentUser!.address ?? '';
     }
   }
 
@@ -74,8 +83,8 @@ class ProfileNotifier extends ChangeNotifier {
   }
 
   String get address {
-    return _currentUser?.address.isNotEmpty == true
-        ? _currentUser!.address
+    return _currentUser?.address?.isNotEmpty == true
+        ? _currentUser!.address!
         : 'No address provided';
   }
 
@@ -108,8 +117,13 @@ class ProfileNotifier extends ChangeNotifier {
         userId: _currentUser!.id,
         firstName: firstNameController.text.trim(),
         lastName: lastNameController.text.trim(),
-        phoneNumber: phoneController.text.trim(),
-        address: addressController.text.trim(),
+        email: emailController.text.trim(),
+        phoneNumber: phoneController.text.trim().isEmpty
+            ? null
+            : phoneController.text.trim(),
+        address: addressController.text.trim().isEmpty
+            ? null
+            : addressController.text.trim(),
       );
 
       if (response.success && response.data != null) {
@@ -117,7 +131,7 @@ class ProfileNotifier extends ChangeNotifier {
           id: _currentUser!.id,
           userName: _currentUser!.userName,
           normalizedUserName: _currentUser!.normalizedUserName,
-          email: _currentUser!.email,
+          email: emailController.text.trim(),
           normalizedEmail: _currentUser!.normalizedEmail,
           emailConfirmed: _currentUser!.emailConfirmed,
           passwordHash: _currentUser!.passwordHash,
@@ -202,6 +216,70 @@ class ProfileNotifier extends ChangeNotifier {
     }
   }
 
+  Future<bool> changePassword(BuildContext context,
+      {VoidCallback? onSuccess, VoidCallback? onError}) async {
+    if (!changePasswordFormKey.currentState!.validate()) {
+      return false;
+    }
+
+    if (newPasswordController.text != confirmPasswordController.text) {
+      if (onError != null) {
+        onError();
+      } else {
+        CustomSnackBar.showError(context, 'New passwords do not match');
+      }
+      return false;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _authService.changePassword(
+        userId: _currentUser!.id,
+        currentPassword: currentPasswordController.text,
+        newPassword: newPasswordController.text,
+        confirmPassword: confirmPasswordController.text,
+      );
+
+      if (response.success) {
+        currentPasswordController.clear();
+        newPasswordController.clear();
+        confirmPasswordController.clear();
+
+        if (onSuccess != null) {
+          onSuccess();
+        } else {
+          CustomSnackBar.showSuccess(context, 'Password changed successfully!');
+        }
+        return true;
+      } else {
+        String errorMessage = response.message ?? 'Failed to change password';
+        if (response.errors != null && response.errors!.isNotEmpty) {
+          errorMessage = response.errors!.first;
+        }
+
+        if (onError != null) {
+          onError();
+        } else {
+          CustomSnackBar.showError(context, errorMessage);
+        }
+        return false;
+      }
+    } catch (e) {
+      if (onError != null) {
+        onError();
+      } else {
+        CustomSnackBar.showError(
+            context, 'Failed to change password. Please try again.');
+      }
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     firstNameController.dispose();
@@ -209,6 +287,9 @@ class ProfileNotifier extends ChangeNotifier {
     emailController.dispose();
     phoneController.dispose();
     addressController.dispose();
+    currentPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 }

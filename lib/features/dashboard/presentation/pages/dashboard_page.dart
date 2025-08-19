@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
@@ -255,7 +257,7 @@ class _DashboardPageState extends State<DashboardPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -278,8 +280,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: plan.isActive
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -386,14 +388,21 @@ class _DashboardPageState extends State<DashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Monthly Payment',
+                      plan.paymentFrequency.toLowerCase() == 'daily'
+                          ? 'Daily Payment'
+                          : 'Monthly Payment',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.black54,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      AppUtils.formatAmount(plan.monthlyAmount),
+                      plan.paymentFrequency.toLowerCase() == 'daily'
+                          ? AppUtils.formatAmount(
+                              plan.paymentSchedules.isNotEmpty
+                                  ? plan.paymentSchedules.first.amount
+                                  : 1000)
+                          : AppUtils.formatAmount(plan.monthlyAmount),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
@@ -414,7 +423,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${plan.duration} Months',
+                      plan.paymentFrequency,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
@@ -450,7 +459,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: Text(
-                    'Pay ${AppUtils.formatAmount(plan.monthlyAmount)}',
+                    plan.paymentFrequency.toLowerCase() == 'daily'
+                        ? 'Pay ${AppUtils.formatAmount(plan.paymentSchedules.isNotEmpty ? plan.paymentSchedules.first.amount : 1000)}'
+                        : 'Pay ${AppUtils.formatAmount(plan.monthlyAmount)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                     ),

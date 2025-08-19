@@ -6,7 +6,7 @@ class NotificationUtils {
   static Future<void> sendTestNotification() async {
     await PushNotificationService.showLocalNotification(
       RemoteMessage(
-        notification: RemoteNotification(
+        notification: const RemoteNotification(
           title: 'Test Notification',
           body: 'This is a test notification from Tripple Prime',
         ),
