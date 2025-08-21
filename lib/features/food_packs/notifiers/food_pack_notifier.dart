@@ -8,6 +8,7 @@ import 'package:triple_prime_mobile/shared/models/food_pack_models.dart';
 import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
 import 'package:triple_prime_mobile/core/services/storage_service.dart';
 import 'package:triple_prime_mobile/core/services/env_service.dart';
+import 'package:triple_prime_mobile/core/constants/app_constants.dart';
 
 class FoodPackNotifier extends ChangeNotifier {
   final FoodPackService _foodPackService = FoodPackService();
@@ -161,8 +162,9 @@ class FoodPackNotifier extends ChangeNotifier {
         int totalDays = _calculateTotalDays(durationInMonths);
         return AppUtils.formatAmount(totalAmount / totalDays);
       case 'Weekly':
-        int totalWeeks = _calculateTotalWeeks(durationInMonths);
-        return AppUtils.formatAmount(totalAmount / totalWeeks);
+        // Weekly payment = Monthly payment / 4
+        double monthlyPayment = totalAmount / durationInMonths;
+        return AppUtils.formatAmount(monthlyPayment / 4);
       case 'Monthly':
         return AppUtils.formatAmount(totalAmount / durationInMonths);
       default:
@@ -179,8 +181,8 @@ class FoodPackNotifier extends ChangeNotifier {
         int totalDays = _calculateTotalDays(durationInMonths);
         return totalAmount / totalDays;
       case 'Weekly':
-        int totalWeeks = _calculateTotalWeeks(durationInMonths);
-        return totalAmount / totalWeeks;
+        double monthlyPayment = totalAmount / durationInMonths;
+        return monthlyPayment / 4;
       case 'Monthly':
         return totalAmount / durationInMonths;
       default:
@@ -189,18 +191,7 @@ class FoodPackNotifier extends ChangeNotifier {
   }
 
   int _calculateTotalDays(int months) {
-    DateTime startDate = DateTime.now();
-    DateTime endDate =
-        DateTime(startDate.year, startDate.month + months, startDate.day);
-    return endDate.difference(startDate).inDays;
-  }
-
-  int _calculateTotalWeeks(int months) {
-    DateTime startDate = DateTime.now();
-    DateTime endDate =
-        DateTime(startDate.year, startDate.month + months, startDate.day);
-    int totalDays = endDate.difference(startDate).inDays;
-    return (totalDays / 7).ceil();
+    return months * 30;
   }
 
   List<Map<String, String>> generatePaymentSchedule(FoodPack foodPack) {
@@ -219,12 +210,7 @@ class FoodPackNotifier extends ChangeNotifier {
       DateTime paymentDate;
 
       if (_selectedPaymentFrequency == 'Monthly') {
-        paymentDate =
-            DateTime(startDate.year, startDate.month + i, startDate.day);
-        if (paymentDate.day != startDate.day) {
-          paymentDate = DateTime(startDate.year, startDate.month + i, 1);
-          paymentDate = paymentDate.add(Duration(days: startDate.day - 1));
-        }
+        paymentDate = startDate.add(Duration(days: i * 30));
       } else {
         int intervalDays = _getPaymentIntervalDays();
         paymentDate = startDate.add(Duration(days: i * intervalDays));
@@ -245,7 +231,7 @@ class FoodPackNotifier extends ChangeNotifier {
       case 'Daily':
         return _calculateTotalDays(durationInMonths);
       case 'Weekly':
-        return _calculateTotalWeeks(durationInMonths);
+        return durationInMonths * 4;
       case 'Monthly':
         return durationInMonths;
       default:
@@ -305,54 +291,39 @@ class FoodPackNotifier extends ChangeNotifier {
       // Calculate payment amount
       double paymentAmount = calculatePaymentAmountRaw(foodPack);
 
-      // Prepare metadata
-      final metadata = {
-        "custom_fields": [
-          {
-            "display_name": "Food Pack",
-            "variable_name": "food_pack",
-            "value": foodPack.id.toString()
-          },
-          {
-            "display_name": "Payment Type",
-            "variable_name": "payment_type",
-            "value": _selectedPaymentMethod
-          },
-          {
-            "display_name": "Payment Frequency",
-            "variable_name": "payment_frequency",
-            "value": _selectedPaymentFrequency
-          },
-          {
-            "display_name": "Is Automatic",
-            "variable_name": "is_automatic",
-            "value": _selectedPaymentMethod == 'Automatic Payment'
-          },
-          {
-            "display_name": "Food Pack Name",
-            "variable_name": "food_pack_name",
-            "value": foodPack.name
-          },
-          {
-            "display_name": "Duration",
-            "variable_name": "duration",
-            "value": foodPack.duration.toString()
-          },
-          {
-            "display_name": "User ID",
-            "variable_name": "user_id",
-            "value": userData.id
-          },
-          {
-            "display_name": "User Name",
-            "variable_name": "user_name",
-            "value": "${userData.firstName} ${userData.lastName}"
-          }
-        ]
-      };
+      const nextPendingSchedule = null;
 
-      // Show loading message
-      CustomSnackBar.showLoading(context, 'Processing payment...');
+      final metadata = {
+        'custom_fields': [
+          {
+            'display_name': 'Food Pack',
+            'variable_name': 'food_pack',
+            'value': foodPack.id.toString(),
+          },
+          {
+            'display_name': 'Payment Type',
+            'variable_name': 'payment_type',
+            'value': _selectedPaymentMethod,
+          },
+          {
+            'display_name': 'Payment Frequency',
+            'variable_name': 'payment_frequency',
+            'value': _selectedPaymentFrequency,
+          },
+          {
+            'display_name': 'Is Automatic',
+            'variable_name': 'is_automatic',
+            'value': _selectedPaymentMethod == 'automatic',
+          },
+          if (nextPendingSchedule != null) ...[
+            {
+              'display_name': 'Schedule ID',
+              'variable_name': 'schedule_id',
+              'value': nextPendingSchedule.toString(),
+            }
+          ],
+        ],
+      };
 
       // Initialize Paystack payment
       PayWithPayStack().now(
@@ -360,40 +331,31 @@ class FoodPackNotifier extends ChangeNotifier {
         secretKey: secretKey ?? EnvService.paystackSecretKey,
         customerEmail: userData.email,
         reference: uniqueTransRef,
-        currency: "NGN",
+        currency: AppConstants.currencyCode,
         amount: paymentAmount,
         callbackUrl: EnvService.paystackCallbackUrl,
         metaData: metadata,
         transactionCompleted: (paymentData) {
-          // Dismiss loading
           Navigator.of(context).pop();
-
-          // Show success message
           CustomSnackBar.showSuccess(context,
               'Payment successful! Your savings plan has been activated.');
 
-          // Navigate back to previous screen
           Navigator.of(context).pop();
 
           debugPrint('Payment completed: ${paymentData.toString()}');
         },
         transactionNotCompleted: (reason) {
-          // Dismiss loading
           // Navigator.of(context).pop();
-
-          // // Show error message
           // CustomSnackBar.showError(context, 'Payment failed: $reason');
 
           debugPrint("Transaction failed: $reason");
         },
       );
     } catch (e) {
-      // Dismiss loading
-      // Navigator.of(context).pop();
+      Navigator.of(context).pop();
 
-      // Show error message
-      // CustomSnackBar.showError(
-      //     context, 'Payment processing failed. Please try again.');
+      CustomSnackBar.showError(
+          context, 'Payment processing failed. Please try again.');
 
       debugPrint('Payment error: $e');
     }

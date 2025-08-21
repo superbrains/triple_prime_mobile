@@ -1,5 +1,6 @@
 import 'package:triple_prime_mobile/shared/models/auth_models.dart';
 import 'package:triple_prime_mobile/shared/models/food_pack_models.dart';
+import 'package:triple_prime_mobile/core/utils/app_utils.dart';
 
 class SavingsPlanResponse {
   final bool success;
@@ -178,11 +179,10 @@ class SavingsPlan {
   bool get isCompleted => status.toLowerCase() == 'completed';
   bool get isCancelled => status.toLowerCase() == 'cancelled';
 
-  String get formattedTotalAmount => '₦${totalAmount.toStringAsFixed(0)}';
-  String get formattedAmountPaid => '₦${amountPaid.toStringAsFixed(0)}';
-  String get formattedMonthlyAmount => '₦${monthlyAmount.toStringAsFixed(0)}';
-  String get formattedRemainingAmount =>
-      '₦${remainingAmount.toStringAsFixed(0)}';
+  String get formattedTotalAmount => AppUtils.formatAmount(totalAmount);
+  String get formattedAmountPaid => AppUtils.formatAmount(amountPaid);
+  String get formattedMonthlyAmount => AppUtils.formatAmount(monthlyAmount);
+  String get formattedRemainingAmount => AppUtils.formatAmount(remainingAmount);
   String get progressText =>
       '${(progressPercentage * 100).toStringAsFixed(0)}%';
 
@@ -244,7 +244,7 @@ class Payment {
   bool get isSuccessful => status.toLowerCase() == 'successful';
   bool get isPending => status.toLowerCase() == 'pending';
   bool get isFailed => status.toLowerCase() == 'failed';
-  String get formattedAmount => '₦${amount.toStringAsFixed(0)}';
+  String get formattedAmount => AppUtils.formatAmount(amount);
 }
 
 class PaymentSchedule {
@@ -315,7 +315,7 @@ class PaymentSchedule {
   bool get isPaid => status.toLowerCase() == 'paid';
   bool get isPending => status.toLowerCase() == 'pending';
   bool get isOverdue => dueDate.isBefore(DateTime.now()) && !isPaid;
-  String get formattedAmount => '₦${amount.toStringAsFixed(0)}';
+  String get formattedAmount => AppUtils.formatAmount(amount);
   String get formattedDueDate =>
       '${dueDate.day}/${dueDate.month}/${dueDate.year}';
 }

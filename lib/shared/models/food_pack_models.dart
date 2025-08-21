@@ -1,3 +1,5 @@
+import 'package:triple_prime_mobile/core/utils/app_utils.dart';
+
 class FoodPackResponse {
   final bool success;
   final String message;
@@ -117,10 +119,10 @@ class FoodPack {
   }
 
   // Helper methods
-  String get formattedPrice => '₦${price.toStringAsFixed(0)}';
-  String get formattedOriginalPrice => '₦${originalPrice.toStringAsFixed(0)}';
-  String get formattedSavings => '₦${savings.toStringAsFixed(0)}';
-  String get dailyPayment => '₦${(price / (duration * 30)).toStringAsFixed(0)}';
+  String get formattedPrice => AppUtils.formatAmount(price);
+  String get formattedOriginalPrice => AppUtils.formatAmount(originalPrice);
+  String get formattedSavings => AppUtils.formatAmount(savings);
+  String get dailyPayment => AppUtils.formatAmount(price / (duration * 30));
   String get durationText => '$duration months';
 }
 

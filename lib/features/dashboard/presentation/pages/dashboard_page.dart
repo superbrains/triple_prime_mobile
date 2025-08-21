@@ -460,7 +460,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   child: Text(
                     plan.paymentFrequency.toLowerCase() == 'daily'
-                        ? 'Pay ${AppUtils.formatAmount(plan.paymentSchedules.isNotEmpty ? plan.paymentSchedules.first.amount : 1000)}'
+                        ? 'Pay ${AppUtils.formatAmount(plan.paymentSchedules.isNotEmpty ? plan.paymentSchedules.first.amount : plan.monthlyAmount / 30)}'
                         : 'Pay ${AppUtils.formatAmount(plan.monthlyAmount)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,

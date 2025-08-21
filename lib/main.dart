@@ -11,6 +11,7 @@ import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/features/dashboard/presentation/pages/main_screen.dart';
 import 'package:triple_prime_mobile/core/services/env_service.dart';
 import 'package:triple_prime_mobile/core/services/push_notification_service.dart';
+import 'package:triple_prime_mobile/core/services/paystack_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() async {
 
   await EnvService.init();
   await PushNotificationService.initialize();
+  await PaystackService().initialize();
 
   final authNotifier = AuthNotifier();
   await authNotifier.initializeAuth();

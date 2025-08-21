@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../notifiers/auth_notifier.dart';
 import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:developer' as developer;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -101,7 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 24),
                   CustomTextField(
-                    label: 'Phone Number (Optional)',
+                    label: 'Phone Number',
                     hint: '+234 800 000 0000',
                     controller: authNotifier.registerPhoneController,
                     keyboardType: TextInputType.phone,
@@ -113,7 +114,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 24),
                   CustomTextField(
-                    label: 'Address (Optional)',
+                    label: 'Address',
                     hint: 'Enter your full address',
                     controller: authNotifier.registerAddressController,
                     prefixIcon: Icons.location_on_outlined,
@@ -182,14 +183,42 @@ class _RegisterPageState extends State<RegisterPage> {
                         onTap: () async {
                           final Uri url =
                               Uri.parse('https://tripleprime.com.ng/terms');
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(url,
-                                mode: LaunchMode.externalApplication);
-                          } else {
+                          try {
+                            developer.log(
+                                'Attempting to launch Terms URL: ${url.toString()}');
+
+                            final canLaunch = await canLaunchUrl(url);
+                            developer.log('Can launch Terms URL: $canLaunch');
+
+                            if (canLaunch) {
+                              final result = await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              );
+                              developer.log('Terms launch result: $result');
+
+                              if (!result && context.mounted) {
+                                CustomSnackBar.showError(
+                                  context,
+                                  'Could not launch Terms and Conditions',
+                                );
+                              }
+                            } else {
+                              developer.log(
+                                  'Cannot launch Terms URL: ${url.toString()}');
+                              if (context.mounted) {
+                                CustomSnackBar.showError(
+                                  context,
+                                  'No app available to open Terms and Conditions',
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            developer.log('Error launching Terms URL: $e');
                             if (context.mounted) {
                               CustomSnackBar.showError(
                                 context,
-                                'Could not launch Terms and Conditions',
+                                'Error opening Terms and Conditions: ${e.toString()}',
                               );
                             }
                           }

@@ -6,6 +6,7 @@ import 'package:triple_prime_mobile/core/theme/app_theme.dart';
 import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_text_field.dart';
 import '../../notifiers/profile_notifier.dart';
+import 'dart:developer' as developer;
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -217,7 +218,8 @@ class ProfilePage extends StatelessWidget {
                                 onTap: () => Navigator.of(context)
                                     .pushNamed(AppRouter.changePassword)),
                             _buildSettingItem(context, 'Privacy Policy',
-                                Icons.privacy_tip_outlined),
+                                Icons.privacy_tip_outlined,
+                                onTap: () => _launchPrivacyPolicy(context)),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -298,7 +300,7 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           CustomTextField(
-            label: 'Phone Number (Optional)',
+            label: 'Phone Number',
             controller: profileNotifier.phoneController,
             keyboardType: TextInputType.phone,
             validator: (value) {
@@ -308,7 +310,7 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           CustomTextField(
-            label: 'Address (Optional)',
+            label: 'Address',
             controller: profileNotifier.addressController,
             maxLines: 3,
             validator: (value) {
@@ -490,17 +492,34 @@ class ProfilePage extends StatelessWidget {
   Future<void> _launchContactSupport(BuildContext context) async {
     const url = 'https://tripleprime.com.ng/contact';
     try {
+      developer.log('Attempting to launch URL: $url');
       final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
+
+      final canLaunch = await canLaunchUrl(uri);
+      developer.log('Can launch URL: $canLaunch');
+
+      if (canLaunch) {
+        final result = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        developer.log('Launch result: $result');
+
+        if (!result && context.mounted) {
           CustomSnackBar.showError(context, 'Could not open contact page');
+        }
+      } else {
+        developer.log('Cannot launch URL: $url');
+        if (context.mounted) {
+          CustomSnackBar.showError(
+              context, 'No app available to open contact page');
         }
       }
     } catch (e) {
+      developer.log('Error launching URL: $e');
       if (context.mounted) {
-        CustomSnackBar.showError(context, 'Error opening contact page');
+        CustomSnackBar.showError(
+            context, 'Error opening contact page: ${e.toString()}');
       }
     }
   }
@@ -508,17 +527,69 @@ class ProfilePage extends StatelessWidget {
   Future<void> _launchAboutPage(BuildContext context) async {
     const url = 'https://tripleprime.com.ng/about';
     try {
+      developer.log('Attempting to launch URL: $url');
       final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
+
+      final canLaunch = await canLaunchUrl(uri);
+      developer.log('Can launch URL: $canLaunch');
+
+      if (canLaunch) {
+        final result = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        developer.log('Launch result: $result');
+
+        if (!result && context.mounted) {
           CustomSnackBar.showError(context, 'Could not open about page');
+        }
+      } else {
+        developer.log('Cannot launch URL: $url');
+        if (context.mounted) {
+          CustomSnackBar.showError(
+              context, 'No app available to open about page');
         }
       }
     } catch (e) {
+      developer.log('Error launching URL: $e');
       if (context.mounted) {
-        CustomSnackBar.showError(context, 'Error opening about page');
+        CustomSnackBar.showError(
+            context, 'Error opening about page: ${e.toString()}');
+      }
+    }
+  }
+
+  Future<void> _launchPrivacyPolicy(BuildContext context) async {
+    const url = 'https://tripleprime.com.ng/privacy';
+    try {
+      developer.log('Attempting to launch Privacy Policy URL: $url');
+      final uri = Uri.parse(url);
+
+      final canLaunch = await canLaunchUrl(uri);
+      developer.log('Can launch Privacy Policy URL: $canLaunch');
+
+      if (canLaunch) {
+        final result = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        developer.log('Privacy Policy launch result: $result');
+
+        if (!result && context.mounted) {
+          CustomSnackBar.showError(context, 'Could not open Privacy Policy');
+        }
+      } else {
+        developer.log('Cannot launch Privacy Policy URL: $url');
+        if (context.mounted) {
+          CustomSnackBar.showError(
+              context, 'No app available to open Privacy Policy');
+        }
+      }
+    } catch (e) {
+      developer.log('Error launching Privacy Policy URL: $e');
+      if (context.mounted) {
+        CustomSnackBar.showError(
+            context, 'Error opening Privacy Policy: ${e.toString()}');
       }
     }
   }
@@ -531,17 +602,34 @@ class ProfilePage extends StatelessWidget {
         'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
 
     try {
+      developer.log('Attempting to launch WhatsApp URL: $whatsappUrl');
       final uri = Uri.parse(whatsappUrl);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
+
+      final canLaunch = await canLaunchUrl(uri);
+      developer.log('Can launch WhatsApp URL: $canLaunch');
+
+      if (canLaunch) {
+        final result = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        developer.log('WhatsApp launch result: $result');
+
+        if (!result && context.mounted) {
           CustomSnackBar.showError(context, 'Could not open WhatsApp');
+        }
+      } else {
+        developer.log('Cannot launch WhatsApp URL: $whatsappUrl');
+        if (context.mounted) {
+          CustomSnackBar.showError(
+              context, 'WhatsApp is not installed on this device');
         }
       }
     } catch (e) {
+      developer.log('Error launching WhatsApp URL: $e');
       if (context.mounted) {
-        CustomSnackBar.showError(context, 'Error opening WhatsApp');
+        CustomSnackBar.showError(
+            context, 'Error opening WhatsApp: ${e.toString()}');
       }
     }
   }

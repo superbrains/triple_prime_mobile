@@ -28,33 +28,35 @@ class _FoodPackDetailPageState extends State<FoodPackDetailPage> {
       builder: (context, notifier, child) {
         return Scaffold(
           backgroundColor: AppTheme.backgroundColor,
-          body: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFoodPackDetailsCard(notifier),
-                        const SizedBox(height: 20),
-                        _buildFoodPackContentsCard(),
-                        const SizedBox(height: 20),
-                        _buildPaymentScheduleCard(notifier),
-                        const SizedBox(height: 20),
-                        _buildPaymentPreferenceCard(notifier),
-                        const SizedBox(height: 16),
-                        _buildImportantNote(notifier),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
+          body: Column(
+            children: [
+              Container(
+                height: 40,
+                color: Colors.white,
+              ),
+              _buildHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFoodPackDetailsCard(notifier),
+                      const SizedBox(height: 20),
+                      _buildFoodPackContentsCard(),
+                      const SizedBox(height: 20),
+                      _buildPaymentScheduleCard(notifier),
+                      const SizedBox(height: 20),
+                      _buildPaymentPreferenceCard(notifier),
+                      const SizedBox(height: 16),
+                      _buildImportantNote(notifier),
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
-                _buildActionButtons(notifier),
-              ],
-            ),
+              ),
+              _buildActionButtons(notifier),
+            ],
           ),
         );
       },
@@ -449,7 +451,7 @@ class _FoodPackDetailPageState extends State<FoodPackDetailPage> {
     );
   }
 
-   Widget _buildPaymentScheduleCard(FoodPackNotifier notifier) {
+  Widget _buildPaymentScheduleCard(FoodPackNotifier notifier) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(

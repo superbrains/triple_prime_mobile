@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, unnecessary_null_comparison
 
 import 'package:flutter/material.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
@@ -8,6 +8,7 @@ import 'package:pay_with_paystack/pay_with_paystack.dart';
 import 'package:triple_prime_mobile/core/services/env_service.dart';
 import 'package:triple_prime_mobile/core/services/storage_service.dart';
 import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
+import 'package:triple_prime_mobile/core/constants/app_constants.dart';
 
 class MakePaymentPage extends StatefulWidget {
   final SavingsPlan savingsPlan;
@@ -29,9 +30,17 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
+      body: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           children: [
+            Container(
+              height: 40,
+              color: Colors.white,
+            ),
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
@@ -501,8 +510,8 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
         return;
       }
 
-      // Get the next pending payment
-      final pendingPayments = widget.savingsPlan.paymentSchedules
+      final List<PaymentSchedule> pendingPayments = widget
+          .savingsPlan.paymentSchedules
           .where((schedule) => !schedule.isPaid)
           .toList();
 
@@ -512,19 +521,48 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
         return;
       }
 
-      final nextPayment = pendingPayments.first;
+      final PaymentSchedule nextPayment = pendingPayments.firstWhere(
+        (schedule) => schedule.amount > widget.savingsPlan.amountPaid,
+        orElse: () => pendingPayments.first,
+      );
       final paymentAmount = nextPayment.amount;
 
       // Generate unique transaction reference
       final uniqueTransRef = PayWithPayStack().generateUuidV4();
 
       // Prepare metadata
+      nextPayment;
+
       final metadata = {
-        'savings_plan_id': widget.savingsPlan.id.toString(),
-        'payment_schedule_id': nextPayment.id.toString(),
-        'food_pack_id': widget.savingsPlan.foodPackId.toString(),
-        'payment_type': 'savings_plan_payment',
-        'payment_preference': _selectedPaymentPreference,
+        'custom_fields': [
+          {
+            'display_name': 'Food Pack',
+            'variable_name': 'food_pack',
+            'value': widget.savingsPlan.foodPackId.toString(),
+          },
+          {
+            'display_name': 'Payment Type',
+            'variable_name': 'payment_type',
+            'value': _selectedPaymentPreference,
+          },
+          {
+            'display_name': 'Payment Frequency',
+            'variable_name': 'payment_frequency',
+            'value': widget.savingsPlan.paymentFrequency,
+          },
+          {
+            'display_name': 'Is Automatic',
+            'variable_name': 'is_automatic',
+            'value': _selectedPaymentPreference == 'automatic',
+          },
+          if (nextPayment.id != null) ...[
+            {
+              'display_name': 'Schedule ID',
+              'variable_name': 'schedule_id',
+              'value': nextPayment.id.toString(),
+            }
+          ],
+        ],
       };
 
       // Process payment with Paystack
@@ -533,7 +571,7 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
         secretKey: EnvService.paystackSecretKey,
         customerEmail: userData.email,
         reference: uniqueTransRef,
-        currency: "NGN",
+        currency: AppConstants.currencyCode,
         amount: paymentAmount,
         callbackUrl: EnvService.paystackCallbackUrl,
         metaData: metadata,
