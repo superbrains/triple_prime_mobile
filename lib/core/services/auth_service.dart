@@ -394,4 +394,46 @@ class AuthService {
       );
     }
   }
+
+  /// Delete user account
+  Future<ApiResponse<AuthResponse>> deleteUser({
+    required String userId,
+  }) async {
+    try {
+      _logger.i('🔄 Starting account deletion process for user: $userId');
+
+      final response = await _networkService.delete<AuthResponse>(
+        '${AppConstants.userDelete}/$userId',
+        fromJson: (json) {
+          _logger.d('🔍 Parsing delete user response JSON: $json');
+          try {
+            return AuthResponse.fromJson(json);
+          } catch (e) {
+            _logger.e('💥 Failed to parse AuthResponse: $e');
+            rethrow;
+          }
+        },
+      );
+
+      if (response.success) {
+        _logger.i('✅ Account deletion successful for user: $userId');
+        // Clear all auth data after successful deletion
+        await _storageService.clearAllAuthData();
+      } else {
+        _logger.e(
+            '❌ Account deletion failed for user: $userId - ${response.message}');
+        if (response.errors != null && response.errors!.isNotEmpty) {
+          _logger.e('🚫 Specific errors: ${response.errors}');
+        }
+      }
+
+      return response;
+    } catch (e) {
+      _logger.e('💥 Account deletion error: $e');
+      return ApiResponse.error(
+        message: 'Account deletion failed. Please try again.',
+        statusCode: 500,
+      );
+    }
+  }
 }

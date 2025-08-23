@@ -15,6 +15,9 @@ class ProfileNotifier extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isDeletingAccount = false;
+  bool get isDeletingAccount => _isDeletingAccount;
+
   UserData? _currentUser;
   UserData? get currentUser => _currentUser;
 
@@ -276,6 +279,51 @@ class ProfileNotifier extends ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Delete user account
+  Future<bool> deleteAccount(BuildContext context) async {
+    if (_currentUser == null) {
+      CustomSnackBar.showError(context, 'User data not found');
+      return false;
+    }
+
+    _isDeletingAccount = true;
+    notifyListeners();
+
+    try {
+      final response = await _authService.deleteUser(
+        userId: _currentUser!.id,
+      );
+
+      if (response.success) {
+        _currentUser = null;
+
+        // Navigate to login screen
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.login,
+          (route) => false,
+        );
+
+        CustomSnackBar.showSuccess(context,
+            'Account deleted successfully. We\'re sorry to see you go!');
+        return true;
+      } else {
+        String errorMessage = response.message ?? 'Failed to delete account';
+        if (response.errors != null && response.errors!.isNotEmpty) {
+          errorMessage = response.errors!.first;
+        }
+        CustomSnackBar.showError(context, errorMessage);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackBar.showError(
+          context, 'Failed to delete account. Please try again.');
+      return false;
+    } finally {
+      _isDeletingAccount = false;
       notifyListeners();
     }
   }

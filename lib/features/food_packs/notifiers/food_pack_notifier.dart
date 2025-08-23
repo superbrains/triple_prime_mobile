@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:pay_with_paystack/pay_with_paystack.dart';
+import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/core/services/food_pack_service.dart';
 import 'package:triple_prime_mobile/core/utils/app_utils.dart';
 import 'package:triple_prime_mobile/shared/models/food_pack_models.dart';
@@ -336,11 +337,16 @@ class FoodPackNotifier extends ChangeNotifier {
         callbackUrl: EnvService.paystackCallbackUrl,
         metaData: metadata,
         transactionCompleted: (paymentData) {
-          Navigator.of(context).pop();
-          CustomSnackBar.showSuccess(context,
-              'Payment successful! Your savings plan has been activated.');
+          // Navigator.of(context).pop();
 
-          Navigator.of(context).pop();
+          Future.delayed(const Duration(seconds: 1), () {
+            if (context.mounted) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRouter.mainScreen,
+                (route) => false,
+              );
+            }
+          });
 
           debugPrint('Payment completed: ${paymentData.toString()}');
         },

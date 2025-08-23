@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, unnecessary_null_comparison
 
 import 'package:flutter/material.dart';
+import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
 import 'package:triple_prime_mobile/core/utils/app_utils.dart';
 import 'package:triple_prime_mobile/shared/models/savings_plan_models.dart';
@@ -576,25 +577,18 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
         callbackUrl: EnvService.paystackCallbackUrl,
         metaData: metadata,
         transactionCompleted: (paymentData) {
-          // Dismiss loading
-          Navigator.of(context).pop();
-
-          // // Show success message
-          // CustomSnackBar.showSuccess(
-          //     context, 'Payment successful! Your payment has been processed.');
-
-          // // Navigate back to previous screen
-          // Navigator.of(context).pop();
+          Future.delayed(const Duration(seconds: 1), () {
+            if (context.mounted) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRouter.mainScreen,
+                (route) => false,
+              );
+            }
+          });
 
           debugPrint('Payment completed: ${paymentData.toString()}');
         },
         transactionNotCompleted: (reason) {
-          // Dismiss loading
-          // Navigator.of(context).pop();
-
-          // // Show error message
-          // CustomSnackBar.showError(context, 'Payment failed: $reason');
-
           debugPrint("Transaction failed: $reason");
         },
       );

@@ -47,8 +47,6 @@ class ProfilePage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 24),
-
-                        // Profile Header
                         Center(
                           child: Column(
                             children: [
@@ -107,8 +105,6 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 32),
-
-                        // Personal Information Card
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(20),
@@ -158,8 +154,6 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
-
-                        // Action Buttons (when editing)
                         if (profileNotifier.isEditing) ...[
                           Row(
                             children: [
@@ -207,8 +201,6 @@ class ProfilePage extends StatelessWidget {
                           ),
                           const SizedBox(height: 32),
                         ],
-
-                        // Additional Sections
                         _buildSection(
                           context,
                           'Account Settings',
@@ -223,7 +215,6 @@ class ProfilePage extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 24),
-
                         _buildSection(
                           context,
                           'Support',
@@ -237,6 +228,21 @@ class ProfilePage extends StatelessWidget {
                             _buildSettingItem(
                                 context, 'About App', Icons.info_outline,
                                 onTap: () => _launchAboutPage(context)),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        _buildSection(
+                          context,
+                          'Account Management',
+                          [
+                            _buildSettingItem(
+                              context,
+                              'Delete Account',
+                              Icons.delete_forever_outlined,
+                              onTap: () => _showDeleteAccountDialog(
+                                  context, profileNotifier),
+                              isDestructive: true,
+                            ),
                           ],
                         ),
                       ],
@@ -463,17 +469,19 @@ class ProfilePage extends StatelessWidget {
     String title,
     IconData icon, {
     VoidCallback? onTap,
+    bool isDestructive = false,
   }) {
     return ListTile(
       leading: Icon(
         icon,
-        color: Colors.grey.shade600,
+        color: isDestructive ? Colors.red : Colors.grey.shade600,
         size: 24,
       ),
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.black87,
+              color: isDestructive ? Colors.red : Colors.black87,
+              fontWeight: isDestructive ? FontWeight.w600 : FontWeight.normal,
             ),
       ),
       trailing: Icon(
@@ -658,6 +666,127 @@ class ProfilePage extends StatelessWidget {
             child: const Text('Logout'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(
+      BuildContext context, ProfileNotifier profileNotifier) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red.shade600,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Delete Account',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.black54,
+                      height: 1.5,
+                    ),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
+                        foregroundColor: Colors.black87,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: profileNotifier.isDeletingAccount
+                          ? null
+                          : () async {
+                              Navigator.of(context).pop();
+                              await profileNotifier.deleteAccount(context);
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: profileNotifier.isDeletingAccount
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              'Delete Account',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
       ),
     );
   }
