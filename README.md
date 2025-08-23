@@ -36,16 +36,7 @@ A comprehensive mobile-first food savings application built with Flutter. Trippl
    flutter pub get
    ```
 
-4. Set up environment variables:
-   ```bash
-   # Copy the example environment file
-   cp env.example .env
-   
-   # Edit the .env file with your actual API keys
-   # Replace the placeholder values with your real Paystack API keys
-   ```
-
-5. Run the app:
+4. Run the app:
    ```bash
    flutter run
    ```
@@ -88,18 +79,6 @@ feature/
     └── widgets/
 ```
 
-## Environment Variables
-
-The app requires the following environment variables to be set in a `.env` file:
-
-- `API_BASE_URL`: Your API base URL
-- `API_VERSION`: API version (e.g., 'v1')
-- `PAYSTACK_SECRET_KEY`: Your Paystack secret key
-- `PAYSTACK_PUBLIC_KEY`: Your Paystack public key
-- `PAYSTACK_CALLBACK_URL`: Your Paystack callback URL
-
-**Important**: Never commit the `.env` file to version control. The `.env` file is already included in `.gitignore`.
-
 ## Dependencies
 
 - `flutter_bloc`: State management
@@ -111,7 +90,6 @@ The app requires the following environment variables to be set in a `.env` file:
 - `flutter_animate`: Animations
 - `flutter_staggered_grid_view`: Grid layouts
 - `cached_network_image`: Image caching
-- `flutter_dotenv`: Environment variable management
 
 ## Contributing
 
