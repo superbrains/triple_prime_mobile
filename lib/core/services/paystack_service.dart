@@ -61,10 +61,27 @@ class PaystackService {
         charge.reference = reference;
       }
 
-      // Add metadata
-      metadata.forEach((key, value) {
-        charge.putCustomField(key, value.toString());
-      });
+      // Add metadata - handle custom_fields array specially
+      if (metadata.containsKey('custom_fields') && 
+          metadata['custom_fields'] is List) {
+        // If metadata contains custom_fields array, extract and add each field
+        final customFields = metadata['custom_fields'] as List;
+        for (var field in customFields) {
+          if (field is Map && 
+              field.containsKey('variable_name') && 
+              field.containsKey('value')) {
+            charge.putCustomField(
+              field['variable_name'].toString(), 
+              field['value'].toString()
+            );
+          }
+        }
+      } else {
+        // Otherwise add metadata fields directly
+        metadata.forEach((key, value) {
+          charge.putCustomField(key, value.toString());
+        });
+      }
 
       // Process checkout
       CheckoutResponse response = await plugin.checkout(

@@ -531,39 +531,14 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
       // Generate unique transaction reference
       final uniqueTransRef = PayWithPayStack().generateUuidV4();
 
-      // Prepare metadata
-      nextPayment;
-
+      // Prepare metadata - send fields directly for proper Paystack webhook handling
       final metadata = {
-        'custom_fields': [
-          {
-            'display_name': 'Food Pack',
-            'variable_name': 'food_pack',
-            'value': widget.savingsPlan.foodPackId.toString(),
-          },
-          {
-            'display_name': 'Payment Type',
-            'variable_name': 'payment_type',
-            'value': _selectedPaymentPreference,
-          },
-          {
-            'display_name': 'Payment Frequency',
-            'variable_name': 'payment_frequency',
-            'value': widget.savingsPlan.paymentFrequency,
-          },
-          {
-            'display_name': 'Is Automatic',
-            'variable_name': 'is_automatic',
-            'value': _selectedPaymentPreference == 'automatic',
-          },
-          if (nextPayment.id != null) ...[
-            {
-              'display_name': 'Schedule ID',
-              'variable_name': 'schedule_id',
-              'value': nextPayment.id.toString(),
-            }
-          ],
-        ],
+        'food_pack': widget.savingsPlan.foodPackId.toString(),
+        'payment_type': _selectedPaymentPreference,
+        'payment_frequency': widget.savingsPlan.paymentFrequency,
+        'is_automatic': (_selectedPaymentPreference == 'automatic').toString(),
+        if (nextPayment.id != null) 
+          'schedule_id': nextPayment.id.toString(),
       };
 
       // Process payment with Paystack

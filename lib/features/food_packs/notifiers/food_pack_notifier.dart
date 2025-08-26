@@ -294,36 +294,14 @@ class FoodPackNotifier extends ChangeNotifier {
 
       const nextPendingSchedule = null;
 
+      // Prepare metadata - send fields directly for proper Paystack webhook handling
       final metadata = {
-        'custom_fields': [
-          {
-            'display_name': 'Food Pack',
-            'variable_name': 'food_pack',
-            'value': foodPack.id.toString(),
-          },
-          {
-            'display_name': 'Payment Type',
-            'variable_name': 'payment_type',
-            'value': _selectedPaymentMethod,
-          },
-          {
-            'display_name': 'Payment Frequency',
-            'variable_name': 'payment_frequency',
-            'value': _selectedPaymentFrequency,
-          },
-          {
-            'display_name': 'Is Automatic',
-            'variable_name': 'is_automatic',
-            'value': _selectedPaymentMethod == 'automatic',
-          },
-          if (nextPendingSchedule != null) ...[
-            {
-              'display_name': 'Schedule ID',
-              'variable_name': 'schedule_id',
-              'value': nextPendingSchedule.toString(),
-            }
-          ],
-        ],
+        'food_pack': foodPack.id.toString(),
+        'payment_type': _selectedPaymentMethod,
+        'payment_frequency': _selectedPaymentFrequency,
+        'is_automatic': (_selectedPaymentMethod == 'automatic').toString(),
+        if (nextPendingSchedule != null) 
+          'schedule_id': nextPendingSchedule.toString(),
       };
 
       // Initialize Paystack payment
