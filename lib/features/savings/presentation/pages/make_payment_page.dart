@@ -8,6 +8,7 @@ import 'package:triple_prime_mobile/shared/models/savings_plan_models.dart';
 import 'package:pay_with_paystack/pay_with_paystack.dart';
 import 'package:triple_prime_mobile/core/services/env_service.dart';
 import 'package:triple_prime_mobile/core/services/storage_service.dart';
+import 'package:triple_prime_mobile/core/services/savings_plan_service.dart';
 import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
 import 'package:triple_prime_mobile/core/constants/app_constants.dart';
 
@@ -551,17 +552,77 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
         amount: paymentAmount,
         callbackUrl: EnvService.paystackCallbackUrl,
         metaData: metadata,
-        transactionCompleted: (paymentData) {
-          Future.delayed(const Duration(seconds: 1), () {
-            if (context.mounted) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRouter.mainScreen,
-                (route) => false,
-              );
-            }
-          });
+        transactionCompleted: (paymentData) async {
+          try {
+            // Show loading while confirming with backend
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
 
-          debugPrint('Payment completed: ${paymentData.toString()}');
+            // Extract payment details - use the original reference as fallback
+            String paymentReference = uniqueTransRef;
+            try {
+              // Try to get reference from paymentData if it has a reference property
+              if (paymentData != null) {
+                final dynamic ref = (paymentData as dynamic)?.reference;
+                if (ref != null) {
+                  paymentReference = ref.toString();
+                }
+              }
+            } catch (e) {
+              // If paymentData doesn't have reference property, use original reference
+              debugPrint('Could not extract reference from paymentData: $e');
+            }
+            
+            // Confirm payment with backend
+            final confirmResponse = await SavingsPlanService().confirmMobilePayment(
+              planId: widget.savingsPlan.id,
+              scheduleId: nextPayment.id!,
+              paymentReference: paymentReference,
+              amount: paymentAmount,
+              paymentMethod: _selectedPaymentPreference,
+            );
+
+            // Dismiss loading dialog
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+
+            if (confirmResponse.success) {
+              if (context.mounted) {
+                CustomSnackBar.showSuccess(context, 'Payment confirmed successfully!');
+                
+                // Navigate to main screen after success
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      AppRouter.mainScreen,
+                      (route) => false,
+                    );
+                  }
+                });
+              }
+            } else {
+              if (context.mounted) {
+                CustomSnackBar.showError(context, 
+                  'Payment successful but confirmation failed. Please contact support.');
+              }
+            }
+
+            debugPrint('Payment completed: ${paymentData.toString()}');
+          } catch (e) {
+            // Dismiss loading dialog if still showing
+            if (context.mounted) {
+              Navigator.of(context).pop();
+              CustomSnackBar.showError(context, 
+                'Payment successful but confirmation failed. Please contact support.');
+            }
+            debugPrint('Payment confirmation error: $e');
+          }
         },
         transactionNotCompleted: (reason) {
           debugPrint("Transaction failed: $reason");

@@ -8,6 +8,7 @@ import 'package:triple_prime_mobile/core/utils/app_utils.dart';
 import 'package:triple_prime_mobile/shared/models/food_pack_models.dart';
 import 'package:triple_prime_mobile/core/utils/custom_snackbar.dart';
 import 'package:triple_prime_mobile/core/services/storage_service.dart';
+import 'package:triple_prime_mobile/core/services/savings_plan_service.dart';
 import 'package:triple_prime_mobile/core/services/env_service.dart';
 import 'package:triple_prime_mobile/core/constants/app_constants.dart';
 
@@ -314,19 +315,79 @@ class FoodPackNotifier extends ChangeNotifier {
         amount: paymentAmount,
         callbackUrl: EnvService.paystackCallbackUrl,
         metaData: metadata,
-        transactionCompleted: (paymentData) {
-          // Navigator.of(context).pop();
+        transactionCompleted: (paymentData) async {
+          try {
+            // Show loading while creating savings plan
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
 
-          Future.delayed(const Duration(seconds: 1), () {
-            if (context.mounted) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRouter.mainScreen,
-                (route) => false,
-              );
+            // Extract payment details - use the original reference as fallback
+            String paymentReference = uniqueTransRef;
+            try {
+              // Try to get reference from paymentData if it has a reference property
+              if (paymentData != null) {
+                final dynamic ref = (paymentData as dynamic)?.reference;
+                if (ref != null) {
+                  paymentReference = ref.toString();
+                }
+              }
+            } catch (e) {
+              // If paymentData doesn't have reference property, use original reference
+              debugPrint('Could not extract reference from paymentData: $e');
             }
-          });
+            
+            // Create savings plan via API
+            final createResponse = await SavingsPlanService().createSavingsPlan(
+              foodPackId: foodPack.id,
+              totalAmount: paymentAmount,
+              monthlyAmount: paymentAmount,
+              duration: 1,
+              paymentPreference: _selectedPaymentMethod,
+              paymentFrequency: _selectedPaymentFrequency,
+              paymentReference: paymentReference,
+            );
 
-          debugPrint('Payment completed: ${paymentData.toString()}');
+            // Dismiss loading dialog
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+
+            if (createResponse.success) {
+              if (context.mounted) {
+                CustomSnackBar.showSuccess(context, 'Savings plan created successfully!');
+                
+                // Navigate to main screen after success
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      AppRouter.mainScreen,
+                      (route) => false,
+                    );
+                  }
+                });
+              }
+            } else {
+              if (context.mounted) {
+                CustomSnackBar.showError(context, 
+                  'Payment successful but plan creation failed. Please contact support.');
+              }
+            }
+
+            debugPrint('Payment completed: ${paymentData.toString()}');
+          } catch (e) {
+            // Dismiss loading dialog if still showing
+            if (context.mounted) {
+              Navigator.of(context).pop();
+              CustomSnackBar.showError(context, 
+                'Payment successful but plan creation failed. Please contact support.');
+            }
+            debugPrint('Plan creation error: $e');
+          }
         },
         transactionNotCompleted: (reason) {
           // Navigator.of(context).pop();
