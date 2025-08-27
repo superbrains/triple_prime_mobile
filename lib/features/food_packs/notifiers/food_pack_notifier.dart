@@ -301,7 +301,7 @@ class FoodPackNotifier extends ChangeNotifier {
         'payment_type': _selectedPaymentMethod,
         'payment_frequency': _selectedPaymentFrequency,
         'is_automatic': (_selectedPaymentMethod == 'automatic').toString(),
-        if (nextPendingSchedule != null) 
+        if (nextPendingSchedule != null)
           'schedule_id': nextPendingSchedule.toString(),
       };
 
@@ -330,17 +330,15 @@ class FoodPackNotifier extends ChangeNotifier {
             String paymentReference = uniqueTransRef;
             try {
               // Try to get reference from paymentData if it has a reference property
-              if (paymentData != null) {
-                final dynamic ref = (paymentData as dynamic)?.reference;
-                if (ref != null) {
-                  paymentReference = ref.toString();
-                }
+              final dynamic ref = (paymentData as dynamic)?.reference;
+              if (ref != null) {
+                paymentReference = ref.toString();
               }
             } catch (e) {
               // If paymentData doesn't have reference property, use original reference
               debugPrint('Could not extract reference from paymentData: $e');
             }
-            
+
             // Create savings plan via API
             final createResponse = await SavingsPlanService().createSavingsPlan(
               foodPackId: foodPack.id,
@@ -359,8 +357,9 @@ class FoodPackNotifier extends ChangeNotifier {
 
             if (createResponse.success) {
               if (context.mounted) {
-                CustomSnackBar.showSuccess(context, 'Savings plan created successfully!');
-                
+                CustomSnackBar.showSuccess(
+                    context, 'Savings plan created successfully!');
+
                 // Navigate to main screen after success
                 Future.delayed(const Duration(seconds: 1), () {
                   if (context.mounted) {
@@ -373,8 +372,8 @@ class FoodPackNotifier extends ChangeNotifier {
               }
             } else {
               if (context.mounted) {
-                CustomSnackBar.showError(context, 
-                  'Payment successful but plan creation failed. Please contact support.');
+                CustomSnackBar.showError(context,
+                    'Payment successful but plan creation failed. Please contact support.');
               }
             }
 
@@ -383,8 +382,8 @@ class FoodPackNotifier extends ChangeNotifier {
             // Dismiss loading dialog if still showing
             if (context.mounted) {
               Navigator.of(context).pop();
-              CustomSnackBar.showError(context, 
-                'Payment successful but plan creation failed. Please contact support.');
+              CustomSnackBar.showError(context,
+                  'Payment successful but plan creation failed. Please contact support.');
             }
             debugPrint('Plan creation error: $e');
           }

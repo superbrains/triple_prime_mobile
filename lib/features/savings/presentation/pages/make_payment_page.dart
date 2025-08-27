@@ -538,8 +538,7 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
         'payment_type': _selectedPaymentPreference,
         'payment_frequency': widget.savingsPlan.paymentFrequency,
         'is_automatic': (_selectedPaymentPreference == 'automatic').toString(),
-        if (nextPayment.id != null) 
-          'schedule_id': nextPayment.id.toString(),
+        if (nextPayment.id != null) 'schedule_id': nextPayment.id.toString(),
       };
 
       // Process payment with Paystack
@@ -577,11 +576,12 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
               // If paymentData doesn't have reference property, use original reference
               debugPrint('Could not extract reference from paymentData: $e');
             }
-            
+
             // Confirm payment with backend
-            final confirmResponse = await SavingsPlanService().confirmMobilePayment(
+            final confirmResponse =
+                await SavingsPlanService().confirmMobilePayment(
               planId: widget.savingsPlan.id,
-              scheduleId: nextPayment.id!,
+              scheduleId: nextPayment.id,
               paymentReference: paymentReference,
               amount: paymentAmount,
               paymentMethod: _selectedPaymentPreference,
@@ -594,8 +594,9 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
 
             if (confirmResponse.success) {
               if (context.mounted) {
-                CustomSnackBar.showSuccess(context, 'Payment confirmed successfully!');
-                
+                CustomSnackBar.showSuccess(
+                    context, 'Payment confirmed successfully!');
+
                 // Navigate to main screen after success
                 Future.delayed(const Duration(seconds: 1), () {
                   if (context.mounted) {
@@ -608,8 +609,8 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
               }
             } else {
               if (context.mounted) {
-                CustomSnackBar.showError(context, 
-                  'Payment successful but confirmation failed. Please contact support.');
+                CustomSnackBar.showError(context,
+                    'Payment successful but confirmation failed. Please contact support.');
               }
             }
 
@@ -618,8 +619,8 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
             // Dismiss loading dialog if still showing
             if (context.mounted) {
               Navigator.of(context).pop();
-              CustomSnackBar.showError(context, 
-                'Payment successful but confirmation failed. Please contact support.');
+              CustomSnackBar.showError(context,
+                  'Payment successful but confirmation failed. Please contact support.');
             }
             debugPrint('Payment confirmation error: $e');
           }
