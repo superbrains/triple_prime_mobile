@@ -344,9 +344,9 @@ class FoodPackNotifier extends ChangeNotifier {
             // Create savings plan via API
             final createResponse = await SavingsPlanService().createSavingsPlan(
               foodPackId: foodPack.id,
-              totalAmount: paymentAmount,
-              monthlyAmount: paymentAmount,
-              duration: 1,
+              totalAmount: foodPack.price,  // Use full food pack price
+              monthlyAmount: foodPack.price / foodPack.duration,  // Calculate correct monthly amount
+              duration: foodPack.duration,  // Use actual food pack duration
               paymentPreference: _selectedPaymentMethod,
               paymentFrequency: _selectedPaymentFrequency,
               paymentReference: paymentReference,
