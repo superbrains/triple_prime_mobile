@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -195,6 +197,7 @@ class NetworkService {
         queryParameters: queryParameters,
         options: options,
       );
+      log('response: $response');
 
       return _handleResponse<T>(response, fromJson);
     } on DioException catch (e) {
@@ -251,6 +254,7 @@ class NetworkService {
 
           if (!success) {
             // Handle API-level error response
+            log('response.data: ${response.data}');
             final message = _extractErrorMessage(response.data);
             return ApiResponse.error(
               message: message,
@@ -363,7 +367,7 @@ class NetworkService {
         );
 
       case DioExceptionType.unknown:
-      return ApiResponse.error(
+        return ApiResponse.error(
           message: 'Network error occurred. Please try again.',
           statusCode: 0,
         );

@@ -342,18 +342,17 @@ class FoodPackNotifier extends ChangeNotifier {
             // Create savings plan via API
             final createResponse = await SavingsPlanService().createSavingsPlan(
               foodPackId: foodPack.id,
-              totalAmount: foodPack.price,  // Use full food pack price
-              monthlyAmount: foodPack.price / foodPack.duration,  // Calculate correct monthly amount
-              duration: foodPack.duration,  // Use actual food pack duration
+              totalAmount: foodPack.price, // Use full food pack price
+              monthlyAmount: foodPack.price /
+                  foodPack.duration, // Calculate correct monthly amount
+              duration: foodPack.duration, // Use actual food pack duration
               paymentPreference: _selectedPaymentMethod,
               paymentFrequency: _selectedPaymentFrequency,
               paymentReference: paymentReference,
             );
 
             // Dismiss loading dialog
-            if (context.mounted) {
-              Navigator.of(context).pop();
-            }
+            if (context.mounted) {}
 
             if (createResponse.success) {
               if (context.mounted) {
@@ -362,6 +361,7 @@ class FoodPackNotifier extends ChangeNotifier {
 
                 // Navigate to main screen after success
                 Future.delayed(const Duration(seconds: 1), () {
+                  Navigator.of(context).pop();
                   if (context.mounted) {
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       AppRouter.mainScreen,

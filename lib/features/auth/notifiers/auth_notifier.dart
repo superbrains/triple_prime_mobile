@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:triple_prime_mobile/core/app_router.dart';
 import 'package:triple_prime_mobile/core/services/auth_service.dart';
@@ -203,20 +205,17 @@ class AuthNotifier extends ChangeNotifier {
       );
 
       if (response.success && response.data != null) {
-        _isAuthenticated = true;
-        _currentUser = response.data!.user;
-
-        // Clear form
+        log('response.data: ${response.data}');
         _clearRegisterForm();
 
         CustomSnackBar.showSuccess(context, 'Registration successful!');
-        Navigator.of(context).pushNamed(AppRouter.login);
+        Future.delayed(const Duration(seconds: 1), () {
+          Navigator.of(context).pushNamed(AppRouter.login);
+        });
         return true;
       } else {
-        // Show more specific error message if available
         String errorMessage = response.message ?? 'Registration failed';
 
-        // If there are specific errors, show the first one
         if (response.errors != null && response.errors!.isNotEmpty) {
           errorMessage = response.errors!.first;
         }

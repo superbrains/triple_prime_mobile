@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:triple_prime_mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_button.dart';
 import 'package:triple_prime_mobile/shared/widgets/custom_text_field.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
@@ -137,7 +138,8 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(color: Colors.black54)),
                       GestureDetector(
                         onTap: () {
-                          Navigator.of(context).pushNamed(AppRouter.register);
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => const RegisterPage()));
                         },
                         child: const Text(
                           'Create an account',

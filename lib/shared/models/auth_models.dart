@@ -412,13 +412,30 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+
+    UserData? user;
+    String? token;
+
+    if (json['data'] != null && json['data'] is Map<String, dynamic>) {
+      final data = json['data'] as Map<String, dynamic>;
+
+      if (data['user'] != null) {
+        user = UserData.fromJson(data['user'] as Map<String, dynamic>);
+      }
+
+      token = data['token'] as String?;
+    } else {
+      if (json['user'] != null) {
+        user = UserData.fromJson(json['user'] as Map<String, dynamic>);
+      }
+      token = json['token'] as String?;
+    }
+
     return AuthResponse(
       success: json['success'] as bool? ?? false,
       message: json['message'] as String?,
-      token: json['token'] as String?,
-      user: json['user'] != null
-          ? UserData.fromJson(json['user'] as Map<String, dynamic>)
-          : null,
+      token: token,
+      user: user,
       errors: json['errors'] != null
           ? List<String>.from(json['errors'] as List)
           : null,

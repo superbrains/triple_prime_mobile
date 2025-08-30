@@ -62,6 +62,7 @@ class SavingsPlanNotifier extends ChangeNotifier {
 
       if (response.success && response.data != null) {
         _savingsPlans = response.data!;
+
         _applyFilters();
         notifyListeners();
       } else {
