@@ -23,6 +23,16 @@ class FoodPackDetailPage extends StatefulWidget {
 
 class _FoodPackDetailPageState extends State<FoodPackDetailPage> {
   @override
+  void initState() {
+    super.initState();
+    // Load pricing tiers when page opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = Provider.of<FoodPackNotifier>(context, listen: false);
+      notifier.fetchPricingTiers(widget.foodPack.id, widget.foodPack.price);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<FoodPackNotifier>(
       builder: (context, notifier, child) {
@@ -44,6 +54,8 @@ class _FoodPackDetailPageState extends State<FoodPackDetailPage> {
                       _buildFoodPackDetailsCard(notifier),
                       const SizedBox(height: 20),
                       _buildFoodPackContentsCard(),
+                      const SizedBox(height: 20),
+                      _buildDurationSelectionCard(notifier),
                       const SizedBox(height: 20),
                       _buildPaymentScheduleCard(notifier),
                       const SizedBox(height: 20),
@@ -723,6 +735,230 @@ class _FoodPackDetailPageState extends State<FoodPackDetailPage> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Build duration selection card
+  Widget _buildDurationSelectionCard(FoodPackNotifier notifier) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Select Payment Duration',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 16,
+                ),
+          ),
+          const SizedBox(height: 12),
+          notifier.isLoadingPricing
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                )
+              : notifier.hasPricingTiers
+                  ? Column(
+                      children: notifier.pricingTiers.map((pricing) {
+                        final isSelected = notifier.selectedDuration == pricing.durationMonths;
+                        return GestureDetector(
+                          onTap: () => notifier.setSelectedDuration(pricing.durationMonths),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+                                width: isSelected ? 2 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isSelected ? AppTheme.primaryColor : Colors.grey[400]!,
+                                      width: 2,
+                                    ),
+                                    color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                                  ),
+                                  child: isSelected
+                                      ? Icon(Icons.check, size: 12, color: Colors.white)
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            pricing.durationText,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                              color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                                            ),
+                                          ),
+                                          if (pricing.interestRate > 0) ...[
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange[50],
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '+${pricing.interestRatePercentage}',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.orange[800],
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${pricing.formattedDailyPayment}/day (${pricing.totalDays} days)',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      pricing.formattedTotalPrice,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                                      ),
+                                    ),
+                                    if (pricing.interestRate > 0)
+                                      Text(
+                                        'Base: ${AppUtils.formatAmount(widget.foodPack.price)}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[500],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.amber[800], size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Using base price of ${widget.foodPack.formattedPrice} for ${widget.foodPack.duration} months',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.amber[900],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+          if (notifier.hasPricingTiers && notifier.selectedPricing != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  _buildSummaryRow('Base Price:', AppUtils.formatAmount(widget.foodPack.price)),
+                  if (notifier.getInterestRate() > 0) ...[
+                    const SizedBox(height: 8),
+                    _buildSummaryRow(
+                      'Interest (${(notifier.getInterestRate() * 100).toStringAsFixed(2)}%):',
+                      '+${AppUtils.formatAmount(notifier.getTotalPrice(widget.foodPack.price) - widget.foodPack.price)}',
+                      isHighlighted: true,
+                    ),
+                  ],
+                  const Divider(height: 16),
+                  _buildSummaryRow(
+                    'Total Price:',
+                    AppUtils.formatAmount(notifier.getTotalPrice(widget.foodPack.price)),
+                    isBold: true,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value, {bool isBold = false, bool isHighlighted = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[700],
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            color: isHighlighted ? Colors.orange[800] : (isBold ? Colors.black87 : Colors.grey[700]),
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 

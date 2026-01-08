@@ -27,6 +27,12 @@ class FoodPackNotifier extends ChangeNotifier {
   String _selectedPaymentMethod = 'Manual Payment';
   final List<String> _paymentFrequencies = ['Daily', 'Weekly', 'Monthly'];
 
+  // Pricing state
+  List<FoodPackPricing> _pricingTiers = [];
+  int _selectedDuration = 1;
+  bool _isLoadingPricing = false;
+  FoodPackPricing? _selectedPricing;
+
   // Getters
   List<FoodPack> get foodPacks => _foodPacks;
   List<FoodPack> get filteredPacks => _filteredPacks;
@@ -37,6 +43,10 @@ class FoodPackNotifier extends ChangeNotifier {
   String get selectedPaymentFrequency => _selectedPaymentFrequency;
   String get selectedPaymentMethod => _selectedPaymentMethod;
   List<String> get paymentFrequencies => _paymentFrequencies;
+  List<FoodPackPricing> get pricingTiers => _pricingTiers;
+  int get selectedDuration => _selectedDuration;
+  bool get isLoadingPricing => _isLoadingPricing;
+  FoodPackPricing? get selectedPricing => _selectedPricing;
 
   // Categories from API data
   List<String> get categories {
@@ -339,12 +349,14 @@ class FoodPackNotifier extends ChangeNotifier {
               debugPrint('Could not extract reference from paymentData: $e');
             }
 
-            // Create savings plan via API
+            // Create savings plan via API using selected pricing tier
+            final totalPrice = getTotalPrice(foodPack.price);
+            final duration = _selectedDuration > 0 ? _selectedDuration : foodPack.duration;
             final createResponse = await SavingsPlanService().createSavingsPlan(
               foodPackId: foodPack.id,
-              totalAmount: foodPack.price,  // Use full food pack price
-              monthlyAmount: foodPack.price / foodPack.duration,  // Calculate correct monthly amount
-              duration: foodPack.duration,  // Use actual food pack duration
+              totalAmount: totalPrice,  // Use pricing tier total (includes interest)
+              monthlyAmount: totalPrice / duration,  // Calculate monthly amount from pricing tier
+              duration: duration,  // Use selected duration from pricing tier
               paymentPreference: _selectedPaymentMethod,
               paymentFrequency: _selectedPaymentFrequency,
               paymentReference: paymentReference,
@@ -408,5 +420,106 @@ class FoodPackNotifier extends ChangeNotifier {
   /// Get payment amount for Paystack
   double getPaymentAmount(FoodPack foodPack) {
     return calculatePaymentAmountRaw(foodPack);
+  }
+
+  // ========== PRICING METHODS ==========
+
+  /// Fetch pricing tiers for a food pack
+  Future<void> fetchPricingTiers(int foodPackId, double basePrice) async {
+    _isLoadingPricing = true;
+    notifyListeners();
+
+    try {
+      final response = await _foodPackService.getFoodPackWithPricing(foodPackId);
+
+      if (response.success && response.data != null) {
+        _pricingTiers = response.data!.pricings;
+
+        // Set default selected duration to first available or 1 month
+        if (_pricingTiers.isNotEmpty) {
+          _selectedDuration = _pricingTiers.first.durationMonths;
+          _selectedPricing = _pricingTiers.first;
+        } else {
+          // No pricing tiers configured, use base price
+          _selectedDuration = 1;
+          _selectedPricing = null;
+        }
+      } else {
+        _pricingTiers = [];
+        _selectedDuration = 1;
+        _selectedPricing = null;
+      }
+    } catch (e) {
+      debugPrint('Error fetching pricing tiers: $e');
+      _pricingTiers = [];
+      _selectedDuration = 1;
+      _selectedPricing = null;
+    } finally {
+      _isLoadingPricing = false;
+      notifyListeners();
+    }
+  }
+
+  /// Set selected duration and update selected pricing
+  void setSelectedDuration(int duration) {
+    _selectedDuration = duration;
+    _selectedPricing = _pricingTiers.firstWhere(
+      (p) => p.durationMonths == duration,
+      orElse: () => _pricingTiers.isNotEmpty ? _pricingTiers.first : _pricingTiers.first,
+    );
+    notifyListeners();
+  }
+
+  /// Get total price for selected duration (with interest)
+  double getTotalPrice(double basePrice) {
+    if (_selectedPricing != null) {
+      return _selectedPricing!.totalPrice;
+    }
+    return basePrice; // No pricing tier, use base price
+  }
+
+  /// Get daily payment amount for selected duration
+  double getDailyPaymentAmount(double basePrice) {
+    if (_selectedPricing != null) {
+      return _selectedPricing!.dailyPaymentAmount;
+    }
+    // Calculate based on selected duration
+    return basePrice / (_selectedDuration * 30);
+  }
+
+  /// Calculate payment amount with pricing consideration
+  String calculatePaymentAmountWithPricing(double basePrice) {
+    double totalAmount = getTotalPrice(basePrice);
+    int durationInMonths = _selectedDuration;
+
+    switch (_selectedPaymentFrequency) {
+      case 'Daily':
+        int totalDays = _calculateTotalDays(durationInMonths);
+        return AppUtils.formatAmount(totalAmount / totalDays);
+      case 'Weekly':
+        double monthlyPayment = totalAmount / durationInMonths;
+        return AppUtils.formatAmount(monthlyPayment / 4);
+      case 'Monthly':
+        return AppUtils.formatAmount(totalAmount / durationInMonths);
+      default:
+        return AppUtils.formatAmount(totalAmount / durationInMonths);
+    }
+  }
+
+  /// Get interest rate for selected duration
+  double getInterestRate() {
+    return _selectedPricing?.interestRate ?? 0.0;
+  }
+
+  /// Check if pricing tiers are available
+  bool get hasPricingTiers => _pricingTiers.isNotEmpty;
+
+  /// Clear pricing data
+  void clearPricingData() {
+    _pricingTiers = [];
+    _selectedDuration = 1;
+    _selectedPricing = null;
+    _isLoadingPricing = false;
+    notifyListeners();
   }
 }
