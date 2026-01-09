@@ -163,6 +163,7 @@ class FoodPackPricing {
   final int foodPackId;
   final int durationMonths;
   final double interestRate;
+  final bool useGlobalRate;
   final double totalPrice;
   final double dailyPaymentAmount;
   final String createdAt;
@@ -173,6 +174,7 @@ class FoodPackPricing {
     required this.foodPackId,
     required this.durationMonths,
     required this.interestRate,
+    required this.useGlobalRate,
     required this.totalPrice,
     required this.dailyPaymentAmount,
     required this.createdAt,
@@ -185,6 +187,7 @@ class FoodPackPricing {
       foodPackId: json['foodPackId'] ?? 0,
       durationMonths: json['durationMonths'] ?? 0,
       interestRate: (json['interestRate'] ?? 0).toDouble(),
+      useGlobalRate: json['useGlobalRate'] ?? true,
       totalPrice: (json['totalPrice'] ?? 0).toDouble(),
       dailyPaymentAmount: (json['dailyPaymentAmount'] ?? 0).toDouble(),
       createdAt: json['createdAt'] ?? '',
@@ -198,6 +201,7 @@ class FoodPackPricing {
       'foodPackId': foodPackId,
       'durationMonths': durationMonths,
       'interestRate': interestRate,
+      'useGlobalRate': useGlobalRate,
       'totalPrice': totalPrice,
       'dailyPaymentAmount': dailyPaymentAmount,
       'createdAt': createdAt,

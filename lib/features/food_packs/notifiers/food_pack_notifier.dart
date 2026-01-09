@@ -463,10 +463,14 @@ class FoodPackNotifier extends ChangeNotifier {
   /// Set selected duration and update selected pricing
   void setSelectedDuration(int duration) {
     _selectedDuration = duration;
-    _selectedPricing = _pricingTiers.firstWhere(
-      (p) => p.durationMonths == duration,
-      orElse: () => _pricingTiers.isNotEmpty ? _pricingTiers.first : _pricingTiers.first,
-    );
+    if (_pricingTiers.isEmpty) {
+      _selectedPricing = null;
+    } else {
+      _selectedPricing = _pricingTiers.firstWhere(
+        (p) => p.durationMonths == duration,
+        orElse: () => _pricingTiers.first,
+      );
+    }
     notifyListeners();
   }
 
