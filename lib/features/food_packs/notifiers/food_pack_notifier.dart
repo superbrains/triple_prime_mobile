@@ -363,9 +363,7 @@ class FoodPackNotifier extends ChangeNotifier {
             );
 
             // Dismiss loading dialog
-            if (context.mounted) {
-              Navigator.of(context).pop();
-            }
+            if (context.mounted) {}
 
             if (createResponse.success) {
               if (context.mounted) {
@@ -374,6 +372,7 @@ class FoodPackNotifier extends ChangeNotifier {
 
                 // Navigate to main screen after success
                 Future.delayed(const Duration(seconds: 1), () {
+                  Navigator.of(context).pop();
                   if (context.mounted) {
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       AppRouter.mainScreen,

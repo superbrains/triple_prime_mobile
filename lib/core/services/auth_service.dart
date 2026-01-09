@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:logger/logger.dart';
 import 'package:triple_prime_mobile/core/constants/app_constants.dart';
 import 'package:triple_prime_mobile/core/services/storage_service.dart';
@@ -37,7 +39,7 @@ class AuthService {
         referralCode: referralCode,
       );
 
-      _logger.d('📤 Register request data: ${request.toJson()}');
+      log('📤 Register request data: ${request.toJson()}');
 
       final response = await _networkService.post<AuthResponse>(
         AppConstants.authRegister,
@@ -52,7 +54,7 @@ class AuthService {
           }
         },
       );
-
+      log('response: $response');
       if (response.success && response.data != null) {
         // Save the auth token if it exists
         if (response.data!.token != null) {
