@@ -8,7 +8,6 @@ import 'package:triple_prime_mobile/features/food_packs/notifiers/food_pack_noti
 import 'package:triple_prime_mobile/features/profile/notifiers/profile_notifier.dart';
 import 'package:triple_prime_mobile/features/savings/notifiers/savings_plan_notifier.dart';
 import 'package:triple_prime_mobile/core/app_router.dart';
-import 'package:triple_prime_mobile/features/dashboard/presentation/pages/main_screen.dart';
 import 'package:triple_prime_mobile/core/services/env_service.dart';
 import 'package:triple_prime_mobile/core/services/push_notification_service.dart';
 import 'package:triple_prime_mobile/core/services/paystack_service.dart';
@@ -55,7 +54,10 @@ class TriplePrimeApp extends StatelessWidget {
       home: Consumer<AuthNotifier>(
         builder: (context, authNotifier, child) {
           if (authNotifier.isAuthenticated) {
-            return const MainScreen();
+            return const Navigator(
+              initialRoute: AppRouter.login,
+              onGenerateRoute: AppRouter.onGenerateRoute,
+            );
           }
           return const Navigator(
             initialRoute: AppRouter.landing,

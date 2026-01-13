@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:triple_prime_mobile/core/theme/app_theme.dart';
+import 'package:triple_prime_mobile/core/utils/app_utils.dart';
 import 'package:triple_prime_mobile/shared/models/food_pack_models.dart';
 import 'package:triple_prime_mobile/features/food_packs/notifiers/food_pack_notifier.dart';
 
