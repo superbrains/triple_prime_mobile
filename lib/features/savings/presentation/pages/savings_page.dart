@@ -325,39 +325,93 @@ class _SavingsPageState extends State<SavingsPage> {
 
   Widget _buildPaymentItem(
       BuildContext context, dynamic schedule, bool isPaid, bool isNext) {
+    final hasInterest = schedule.hasInterest ?? false;
+    final isOverdue = schedule.isOverdue ?? false;
+
     return Card(
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isPaid
-                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-                : Colors.grey[100],
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            isPaid ? Icons.check : Icons.schedule,
-            color: isPaid
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey[600],
-          ),
-        ),
-        title: Text(
-          schedule.formattedDueDate,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
+      child: Column(
+        children: [
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isPaid
+                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                    : isOverdue
+                        ? Colors.red.withValues(alpha: 0.1)
+                        : Colors.grey[100],
+                shape: BoxShape.circle,
               ),
-        ),
-        trailing: Text(
-          AppUtils.formatAmount(schedule.amount),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              child: Icon(
+                isPaid
+                    ? Icons.check
+                    : isOverdue
+                        ? Icons.warning_amber
+                        : Icons.schedule,
                 color: isPaid
                     ? Theme.of(context).colorScheme.primary
-                    : Colors.grey[800],
-                fontWeight: FontWeight.bold,
+                    : isOverdue
+                        ? Colors.red
+                        : Colors.grey[600],
               ),
-        ),
+            ),
+            title: Text(
+              schedule.formattedDueDate,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
+                  ),
+            ),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  AppUtils.formatAmount(schedule.amount),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: isPaid
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey[800],
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                if (hasInterest)
+                  Text(
+                    '+${schedule.formattedAccruedInterest}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+              ],
+            ),
+          ),
+          if (hasInterest && isOverdue)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                border: Border(
+                  top: BorderSide(color: Colors.red.withValues(alpha: 0.2)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 14, color: Colors.red[700]),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${schedule.daysOverdue} days overdue - 0.5% daily interest. Total: ${schedule.formattedTotalDue}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.red[700],
+                            fontSize: 11,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

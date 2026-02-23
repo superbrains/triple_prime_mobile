@@ -236,31 +236,81 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
             itemBuilder: (context, index) {
               final schedule = paymentSchedules[index];
               final isPaid = schedule.isPaid;
+              final hasInterest = schedule.hasInterest;
+              final isOverdue = schedule.isOverdue;
 
-              return Row(
+              return Column(
                 children: [
-                  Icon(
-                    Icons.schedule,
-                    color: isPaid ? Colors.grey[400] : Colors.grey[600],
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      schedule.formattedDueDate,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: isPaid ? Colors.grey[400] : Colors.black87,
-                            fontWeight:
-                                isPaid ? FontWeight.normal : FontWeight.w500,
-                          ),
-                    ),
-                  ),
-                  Text(
-                    AppUtils.formatAmount(schedule.amount),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isPaid ? Colors.grey[400] : Colors.black87,
-                          fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      Icon(
+                        isPaid
+                            ? Icons.check_circle
+                            : isOverdue
+                                ? Icons.warning_amber
+                                : Icons.schedule,
+                        color: isPaid
+                            ? Colors.grey[400]
+                            : isOverdue
+                                ? Colors.red
+                                : Colors.grey[600],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              schedule.formattedDueDate,
+                              style:
+                                  Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: isPaid
+                                            ? Colors.grey[400]
+                                            : Colors.black87,
+                                        fontWeight: isPaid
+                                            ? FontWeight.normal
+                                            : FontWeight.w500,
+                                      ),
+                            ),
+                            if (hasInterest && isOverdue)
+                              Text(
+                                '${schedule.daysOverdue} days overdue',
+                                style:
+                                    Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Colors.red,
+                                          fontSize: 11,
+                                        ),
+                              ),
+                          ],
                         ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            AppUtils.formatAmount(schedule.amount),
+                            style:
+                                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: isPaid
+                                          ? Colors.grey[400]
+                                          : Colors.black87,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                          ),
+                          if (hasInterest)
+                            Text(
+                              '+${schedule.formattedAccruedInterest}',
+                              style:
+                                  Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
+                                      ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -527,7 +577,18 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
         (schedule) => schedule.amount > widget.savingsPlan.amountPaid,
         orElse: () => pendingPayments.first,
       );
-      final paymentAmount = nextPayment.amount;
+      final paymentAmount = nextPayment.totalDue;
+
+      // Show confirmation dialog with interest breakdown if applicable
+      if (nextPayment.hasInterest) {
+        final confirmed = await _showPaymentConfirmationDialog(
+          context,
+          nextPayment,
+        );
+        if (!confirmed) {
+          return; // User cancelled
+        }
+      }
 
       // Generate unique transaction reference
       final uniqueTransRef = PayWithPayStack().generateUuidV4();
@@ -639,5 +700,98 @@ class _MakePaymentPageState extends State<MakePaymentPage> {
 
       debugPrint('Payment error: $e');
     }
+  }
+
+  /// Show confirmation dialog with interest breakdown
+  Future<bool> _showPaymentConfirmationDialog(
+    BuildContext context,
+    PaymentSchedule schedule,
+  ) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Confirm Payment'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAmountRow(
+                  context,
+                  'Principal:',
+                  schedule.amount,
+                ),
+                const SizedBox(height: 8),
+                _buildAmountRow(
+                  context,
+                  'Interest:',
+                  schedule.accruedInterest,
+                  isInterest: true,
+                ),
+                if (schedule.daysOverdue > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '(${schedule.daysOverdue} days overdue)',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[600],
+                            fontSize: 11,
+                          ),
+                    ),
+                  ),
+                const Divider(height: 24),
+                _buildAmountRow(
+                  context,
+                  'Total:',
+                  schedule.totalDue,
+                  isBold: true,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Proceed to Payment'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Widget _buildAmountRow(
+    BuildContext context,
+    String label,
+    double amount, {
+    bool isBold = false,
+    bool isInterest = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                fontSize: isBold ? 16 : 14,
+              ),
+        ),
+        Text(
+          AppUtils.formatAmount(amount),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                fontSize: isBold ? 16 : 14,
+                color: isInterest ? Colors.red : Colors.black87,
+              ),
+        ),
+      ],
+    );
   }
 }

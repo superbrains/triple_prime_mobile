@@ -252,9 +252,14 @@ class PaymentSchedule {
   final int savingsPlanId;
   final DateTime dueDate;
   final double amount;
+  final double accruedInterest;
+  final double totalDue;
   final String status;
   final String paymentReference;
   final DateTime? paidAt;
+  final bool isOverdue;
+  final int daysOverdue;
+  final DateTime? interestAccrualStartDate;
   final String createdBy;
   final DateTime createdAt;
   final String updatedBy;
@@ -265,14 +270,19 @@ class PaymentSchedule {
     required this.savingsPlanId,
     required this.dueDate,
     required this.amount,
+    this.accruedInterest = 0.0,
+    double? totalDue,
     required this.status,
     required this.paymentReference,
     this.paidAt,
+    this.isOverdue = false,
+    this.daysOverdue = 0,
+    this.interestAccrualStartDate,
     required this.createdBy,
     required this.createdAt,
     required this.updatedBy,
     required this.updatedAt,
-  });
+  }) : totalDue = totalDue ?? (amount + accruedInterest);
 
   factory PaymentSchedule.fromJson(Map<String, dynamic> json) {
     return PaymentSchedule(
@@ -281,10 +291,17 @@ class PaymentSchedule {
       dueDate: DateTime.tryParse(json['dueDate']?.toString() ?? '') ??
           DateTime.now(),
       amount: (json['amount'] ?? 0).toDouble(),
+      accruedInterest: (json['accruedInterest'] ?? 0).toDouble(),
+      totalDue: (json['totalDue'] ?? 0).toDouble(),
       status: json['status'] ?? '',
       paymentReference: json['paymentReference'] ?? '',
       paidAt: json['paidAt'] != null
           ? DateTime.tryParse(json['paidAt'].toString())
+          : null,
+      isOverdue: json['isOverdue'] ?? false,
+      daysOverdue: json['daysOverdue'] ?? 0,
+      interestAccrualStartDate: json['interestAccrualStartDate'] != null
+          ? DateTime.tryParse(json['interestAccrualStartDate'].toString())
           : null,
       createdBy: json['createdBy'] ?? '',
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
@@ -301,9 +318,15 @@ class PaymentSchedule {
       'savingsPlanId': savingsPlanId,
       'dueDate': dueDate.toIso8601String(),
       'amount': amount,
+      'accruedInterest': accruedInterest,
+      'totalDue': totalDue,
       'status': status,
       'paymentReference': paymentReference,
       if (paidAt != null) 'paidAt': paidAt!.toIso8601String(),
+      'isOverdue': isOverdue,
+      'daysOverdue': daysOverdue,
+      if (interestAccrualStartDate != null)
+        'interestAccrualStartDate': interestAccrualStartDate!.toIso8601String(),
       'createdBy': createdBy,
       'createdAt': createdAt.toIso8601String(),
       'updatedBy': updatedBy,
@@ -314,8 +337,10 @@ class PaymentSchedule {
   // Helper methods
   bool get isPaid => status.toLowerCase() == 'paid';
   bool get isPending => status.toLowerCase() == 'pending';
-  bool get isOverdue => dueDate.isBefore(DateTime.now()) && !isPaid;
+  bool get hasInterest => accruedInterest > 0;
   String get formattedAmount => AppUtils.formatAmount(amount);
+  String get formattedAccruedInterest => AppUtils.formatAmount(accruedInterest);
+  String get formattedTotalDue => AppUtils.formatAmount(totalDue);
   String get formattedDueDate =>
       '${dueDate.day}/${dueDate.month}/${dueDate.year}';
 }
