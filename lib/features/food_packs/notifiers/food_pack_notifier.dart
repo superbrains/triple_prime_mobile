@@ -185,8 +185,8 @@ class FoodPackNotifier extends ChangeNotifier {
   }
 
   double calculatePaymentAmountRaw(FoodPack foodPack) {
-    double totalAmount = foodPack.price;
-    int durationInMonths = foodPack.duration;
+    double totalAmount = _selectedPricing?.totalPrice ?? foodPack.price;
+    int durationInMonths = _selectedDuration;
 
     switch (_selectedPaymentFrequency) {
       case 'Daily':
@@ -211,7 +211,7 @@ class FoodPackNotifier extends ChangeNotifier {
     DateTime startDate = DateTime.now();
     double paymentAmount = calculatePaymentAmountRaw(foodPack);
 
-    int numberOfPayments = _getNumberOfPayments(foodPack.duration);
+    int numberOfPayments = _getNumberOfPayments(_selectedDuration);
     int maxDisplayPayments = _selectedPaymentFrequency == 'Daily'
         ? 10
         : _selectedPaymentFrequency == 'Weekly'
